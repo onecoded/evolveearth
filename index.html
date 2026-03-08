@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Evolve Earth | Sustainability &amp; Personal Growth Movement</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#2d6a4f;--green2:#52b788;--lime:#b7e4c7;--cream:#f8f4ef;--text:#1a2e1a;--muted:#5a7a5a;--dark:#0d1f0d}
+    html{scroll-behavior:smooth}
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--cream);color:var(--text);line-height:1.7}
+    nav{position:fixed;top:0;width:100%;z-index:100;background:rgba(13,31,13,.92);backdrop-filter:blur(10px);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+    .logo{font-size:1.3rem;color:var(--green2);letter-spacing:1px;font-weight:700;text-decoration:none}
+    .nav-links{display:flex;gap:2rem;list-style:none}
+    .nav-links a{color:#e8f5e9;text-decoration:none;font-size:.9rem;transition:color .3s}
+    .nav-links a:hover{color:var(--green2)}
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none}
+    .hamburger span{display:block;width:25px;height:2px;background:#e8f5e9}
+    .hero{min-height:100vh;background:linear-gradient(160deg,var(--dark) 0%,var(--green) 70%,#1b4332 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:6rem 2rem 4rem}
+    .hero h1{font-size:clamp(2.5rem,6vw,4.5rem);color:#e8f5e9;font-weight:800;letter-spacing:-1px;margin-bottom:1rem;line-height:1.1}
+    .hero h1 span{color:var(--green2)}
+    .hero p{font-size:clamp(1rem,2.5vw,1.25rem);color:rgba(232,245,233,.8);max-width:600px;margin:0 auto 2rem}
+    .btn{display:inline-block;padding:.9rem 2.2rem;background:var(--green2);color:var(--dark);text-decoration:none;font-weight:700;border-radius:4px;font-size:.95rem;transition:all .3s}
+    .btn:hover{background:var(--lime);transform:translateY(-2px)}
+    section{padding:5rem 2rem}
+    .container{max-width:1100px;margin:0 auto}
+    .section-tag{text-align:center;color:var(--green2);letter-spacing:3px;text-transform:uppercase;font-size:.8rem;font-weight:700;margin-bottom:.75rem}
+    .section-title{text-align:center;font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;margin-bottom:1rem}
+    .section-sub{text-align:center;max-width:580px;margin:0 auto 3rem;color:var(--muted)}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem}
+    .card{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 2px 20px rgba(0,0,0,.06);transition:transform .3s;border-top:4px solid var(--green2)}
+    .card:hover{transform:translateY(-5px);box-shadow:0 8px 30px rgba(0,0,0,.1)}
+    .card-icon{font-size:2.2rem;margin-bottom:.75rem}
+    .card h3{font-size:1.1rem;color:var(--green);margin-bottom:.5rem;font-weight:700}
+    .card p{color:var(--muted);font-size:.9rem}
+    .mission{background:var(--green);color:#e8f5e9;padding:4rem 2rem;text-align:center}
+    .mission p{font-size:clamp(1.1rem,2.5vw,1.5rem);max-width:700px;margin:0 auto;line-height:1.8;font-style:italic}
+    .cta-sec{background:var(--dark);text-align:center;padding:5rem 2rem}
+    .cta-box{max-width:600px;margin:0 auto}
+    .cta-box h2{color:#e8f5e9;font-size:clamp(1.5rem,3vw,2rem);font-weight:800;margin-bottom:1rem}
+    .cta-box p{color:rgba(232,245,233,.7);margin-bottom:2rem}
+    .cta-form{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center}
+    .cta-form input{flex:1;min-width:220px;padding:.85rem 1rem;border:1px solid rgba(82,183,136,.4);background:rgba(255,255,255,.07);color:#e8f5e9;border-radius:4px;font-size:.95rem}
+    .cta-form button{padding:.85rem 1.8rem;background:var(--green2);border:none;color:var(--dark);cursor:pointer;font-weight:700;border-radius:4px;font-size:.95rem}
+    footer{background:#0a1a0a;color:rgba(232,245,233,.4);text-align:center;padding:1.5rem;font-size:.85rem}
+    footer a{color:var(--green2);text-decoration:none}
+    @media(max-width:768px){.nav-links{display:none;flex-direction:column;position:absolute;top:100%;left:0;width:100%;background:var(--dark);padding:1.5rem 2rem;gap:1.5rem}.nav-links.open{display:flex}.hamburger{display:flex}}
+  </style>
+</head>
+<body>
+<script>function toggleNav(){document.getElementById("navLinks").classList.toggle("open")}</script>
+<nav>
+  <a href="#" class="logo">&#127807; Evolve Earth</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#mission">Mission</a></li>
+    <li><a href="#pillars">Pillars</a></li>
+    <li><a href="#join">Join</a></li>
+  </ul>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<section class="hero"><div>
+    <h1>Regenerate.<br/><span>Evolve.</span> Thrive.</h1>
+    <p>A global movement uniting sustainability, personal growth, and ecological regeneration for a planet that flourishes.</p>
+    <a href="#pillars" class="btn">Explore the Movement</a>
+  </div></section>
+<section id="pillars"><div class="container">
+    <p class="section-tag">Our Pillars</p>
+    <h2 class="section-title">How We Evolve Together</h2>
+    <p class="section-sub">Four interconnected paths toward a regenerative future for people and planet.</p>
+    <div class="cards">
+      <div class="card"><div class="card-icon">&#127757;</div><h3>Ecological Regeneration</h3><p>Restoring biodiversity, soil health, and natural systems through community-led projects worldwide.</p></div>
+      <div class="card"><div class="card-icon">&#129504;</div><h3>Conscious Living</h3><p>Mindful consumption, zero-waste practices, and intentional lifestyle design for sustainable wellbeing.</p></div>
+      <div class="card"><div class="card-icon">&#127768;</div><h3>Human Potential</h3><p>Workshops, retreats, and coaching to unlock purpose-driven growth aligned with planetary health.</p></div>
+      <div class="card"><div class="card-icon">&#129309;</div><h3>Community &amp; Culture</h3><p>Building local and global networks of changemakers committed to a regenerative future.</p></div>
+    </div></div></section>
+<div class="mission" id="mission"><p>&ldquo;The Earth does not need saving. It needs us to evolve. When we grow into our highest selves, we naturally restore the world around us.&rdquo;</p></div>
+<section class="cta-sec" id="join"><div class="cta-box">
+    <h2>Join the Movement</h2>
+    <p>Get weekly insights on sustainable living, regenerative practices, and personal evolution. Free, always.</p>
+    <form class="cta-form" onsubmit="return false;"><input type="email" placeholder="Enter your email"/><button type="submit">Join Free</button></form>
+  </div></section>
+<footer><p>&copy; 2025 <a href="https://evolveearth.com">EvolveEarth.com</a> &middot; All Rights Reserved</p></footer>
+</body>
+</html>
