@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mint Your Soul Signature</title>
+<!-- ethers v6 (UMD) — the only external dependency, for wallet + contract calls -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<script src="./soul-bridge.js"></script>
+<style>
+  body{background:#0a0a0f;color:#e8e4d9;font-family:Georgia,serif;display:flex;
+       min-height:100vh;align-items:center;justify-content:center;margin:0;padding:24px}
+  .card{background:#16161f;border:1px solid #2a2a3a;border-radius:14px;padding:32px;
+        max-width:440px;width:100%}
+  h1{font-size:1.4rem;margin:0 0 4px;color:#c9a84c}
+  .sub{color:#8a8499;font-size:.9rem;margin-bottom:24px}
+  .traits{font-family:'Courier New',monospace;font-size:.85rem;background:#0d0d14;
+          border:1px solid #2a2a3a;border-radius:8px;padding:16px;margin-bottom:20px}
+  .traits div{display:flex;justify-content:space-between;padding:3px 0}
+  .traits .k{color:#8a8499}
+  button{width:100%;padding:14px;border:none;border-radius:30px;cursor:pointer;
+         font-family:inherit;font-size:.95rem;letter-spacing:1px;text-transform:uppercase;
+         background:linear-gradient(135deg,#5500bb,#bb00ff);color:#fff;margin-top:8px}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .status{font-size:.82rem;color:#8a8499;margin-top:16px;line-height:1.6;word-break:break-word}
+  a{color:#4a9eff}
+  .warn{color:#ff9966}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>✦ Mint Your Soul Signature</h1>
+  <div class="sub">Your assessment result, inscribed permanently on-chain.</div>
+
+  <div class="traits" id="traits">Reading your assessment…</div>
+
+  <button id="mintBtn" disabled>Connect Wallet &amp; Mint</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+// ── CONFIG — resolved from ../deployments.json when served over http;
+// falls back to this constant (fill after deploy) on file:// ──
+let CONTRACT_ADDRESS = "0xYOUR_DEPLOYED_CONTRACT_ADDRESS";
+fetch('../deployments.json').then(r => r.json()).then(m => {
+  const a = m && m.networks && m.networks.subtensorTestnet && m.networks.subtensorTestnet.SoulSignature;
+  if (a) { CONTRACT_ADDRESS = a; const s = document.getElementById('status'); if (s) s.textContent = 'Contract found via deployments.json'; }
+}).catch(() => {});
+
+// Bittensor Subtensor EVM — testnet. For mainnet use chainId 964 (0x3c4) +
+// rpc https://lite.chain.opentensor.ai.
+const NETWORK = {
+  chainIdHex: "0x3b1",              // 945 (testnet). Mainnet = 0x3c4 (964).
+  chainName: "Bittensor Testnet (Subtensor EVM)",
+  rpcUrls: ["https://test.chain.opentensor.ai"],
+  nativeCurrency: { name: "TAO", symbol: "TAO", decimals: 18 },
+  // Verify the current Subtensor EVM block explorer URL (e.g. via taostats) and
+  // set it here; links below use it. Wallet add-chain works even if omitted.
+  blockExplorerUrls: ["https://evm.taostats.io"],
+};
+
+// Minimal ABI — just the function we call.
+const ABI = [
+  "function mint(address to,uint8 vata,uint8 pitta,uint8 kapha,string dominantChakra,string tribe,string chakraStates) returns (uint256)",
+  "function nextTokenId() view returns (uint256)",
+];
+
+const statusEl = document.getElementById("status");
+const btn = document.getElementById("mintBtn");
+let soul = null;
+
+// 1) Pull the most recent completed assessment from the app's localStorage.
+//    (chakra-destiny.html saves sessions under "chakra_sessions".)
+function loadLatestAssessment() {
+  const raw = localStorage.getItem("chakra_sessions");
+  if (!raw) return null;
+  const sessions = JSON.parse(raw);
+  if (!sessions.length) return null;
+  // newest by completedAt
+  return sessions.sort((a, b) =>
+    new Date(b.completedAt || 0) - new Date(a.completedAt || 0))[0];
+}
+
+function renderTraits(s) {
+  document.getElementById("traits").innerHTML = `
+    <div><span class="k">Vata</span><span>${s.vata}%</span></div>
+    <div><span class="k">Pitta</span><span>${s.pitta}%</span></div>
+    <div><span class="k">Kapha</span><span>${s.kapha}%</span></div>
+    <div><span class="k">Dominant chakra</span><span>${s.dominantChakra}</span></div>
+    <div><span class="k">Deficient chakra</span><span>${s.deficientChakra}</span></div>
+    <div><span class="k">Tribe</span><span>${s.tribe}</span></div>
+    <div><span class="k">Sadhana points</span><span>${s.sadhanaPoints}</span></div>`;
+}
+
+function init() {
+  const session = loadLatestAssessment();
+  if (!session) {
+    document.getElementById("traits").innerHTML =
+      '<span class="warn">No completed assessment found.<br>Take the Chakra Journey first, then return here.</span>';
+    return;
+  }
+  // Convert the saved session into NFT traits. healingScores aren't persisted
+  // by the app, so the bridge derives sadhana from chakra flow — that's fine.
+  soul = SoulBridge.assessmentToSoul(
+    session.mainAnswers,
+    session.lsAnswers,
+    {} // no persisted healingScores
+  );
+  renderTraits(soul);
+  btn.disabled = false;
+  if (CONTRACT_ADDRESS.startsWith("0xYOUR")) {
+    statusEl.innerHTML = '<span class="warn">⚠ Set CONTRACT_ADDRESS in this file before minting.</span>';
+  }
+}
+
+// 2) Connect wallet, ensure Base Sepolia, mint.
+async function mint() {
+  if (!window.ethereum) {
+    statusEl.innerHTML = '<span class="warn">No wallet found. Install MetaMask.</span>';
+    return;
+  }
+  try {
+    btn.disabled = true;
+    statusEl.textContent = "Connecting wallet…";
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+
+    // Switch / add Base Sepolia.
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: NETWORK.chainIdHex }],
+      });
+    } catch (e) {
+      if (e.code === 4902) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [NETWORK],
+        });
+      } else throw e;
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const me = await signer.getAddress();
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+    statusEl.textContent = "Minting — confirm in your wallet…";
+    const tx = await contract.mint(
+      me, soul.vata, soul.pitta, soul.kapha, soul.dominantChakra, soul.tribe, soul.chakraStates
+    );
+    statusEl.innerHTML = `Submitted: <a href="${NETWORK.blockExplorerUrls[0]}/tx/${tx.hash}" target="_blank">${tx.hash.slice(0,18)}…</a><br>Waiting for confirmation…`;
+    await tx.wait();
+
+    const tokenId = (await contract.nextTokenId()) - 1n;
+    statusEl.innerHTML =
+      `✅ Minted Soul Signature <strong>#${tokenId}</strong>!<br>` +
+      `View it on <a href="${NETWORK.blockExplorerUrls[0]}/token/${CONTRACT_ADDRESS}?a=${tokenId}" target="_blank">Basescan</a> ` +
+      `or import into OpenSea testnet.`;
+  } catch (e) {
+    console.error(e);
+    statusEl.innerHTML = `<span class="warn">${e.shortMessage || e.message}</span>`;
+    btn.disabled = false;
+  }
+}
+
+btn.addEventListener("click", mint);
+init();
+</script>
+</body>
+</html>

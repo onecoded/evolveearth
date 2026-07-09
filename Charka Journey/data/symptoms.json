@@ -1,0 +1,86 @@
+[
+  {
+    "key": "anxiety",
+    "e": "😰",
+    "label": "Anxious — I can't calm down",
+    "chakra": "root",
+    "dosha": "Vata"
+  },
+  {
+    "key": "unsafe",
+    "e": "🌪️",
+    "label": "Ungrounded / money fear / unsafe",
+    "chakra": "root",
+    "dosha": "Vata"
+  },
+  {
+    "key": "numb",
+    "e": "🧊",
+    "label": "Numb — no pleasure, everything flat",
+    "chakra": "sacral",
+    "dosha": "Kapha"
+  },
+  {
+    "key": "creative-block",
+    "e": "🎨",
+    "label": "Creatively blocked / stuck",
+    "chakra": "sacral",
+    "dosha": "Pitta"
+  },
+  {
+    "key": "no-confidence",
+    "e": "🫥",
+    "label": "No confidence / I keep people-pleasing",
+    "chakra": "solar",
+    "dosha": "Vata"
+  },
+  {
+    "key": "anger",
+    "e": "🌋",
+    "label": "Angry / burnt out / need to control",
+    "chakra": "solar",
+    "dosha": "Pitta"
+  },
+  {
+    "key": "heartbreak",
+    "e": "💔",
+    "label": "Heartbroken / grieving / lonely",
+    "chakra": "heart",
+    "dosha": "Vata"
+  },
+  {
+    "key": "resentment",
+    "e": "🏰",
+    "label": "Can't forgive / walled off",
+    "chakra": "heart",
+    "dosha": "Pitta"
+  },
+  {
+    "key": "unheard",
+    "e": "🤐",
+    "label": "Can't speak up / feel unheard",
+    "chakra": "throat",
+    "dosha": "Kapha"
+  },
+  {
+    "key": "overthinking",
+    "e": "🌀",
+    "label": "Overthinking / foggy / can't focus",
+    "chakra": "thirdeye",
+    "dosha": "Vata"
+  },
+  {
+    "key": "insomnia",
+    "e": "🌙",
+    "label": "Racing mind / can't sleep",
+    "chakra": "thirdeye",
+    "dosha": "Vata"
+  },
+  {
+    "key": "lost",
+    "e": "🕳️",
+    "label": "Lost / no meaning / disconnected",
+    "chakra": "crown",
+    "dosha": "Vata"
+  }
+]

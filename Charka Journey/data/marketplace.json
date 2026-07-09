@@ -1,0 +1,137 @@
+[
+  {
+    "chakra": "root",
+    "dosha": "Any",
+    "type": "practitioner",
+    "title": "Somatic Experiencing Practitioner Directory",
+    "desc": "Body-based trauma resolution for deep safety wounds.",
+    "url": "https://directory.traumahealing.org",
+    "price": ""
+  },
+  {
+    "chakra": "root",
+    "dosha": "Vata",
+    "type": "kit",
+    "title": "Grounding Ritual Kit",
+    "desc": "Sesame oil, weighted wrap, root-veg protocol card — Vata anchoring.",
+    "url": "",
+    "price": "$44"
+  },
+  {
+    "chakra": "root",
+    "dosha": "Any",
+    "type": "book",
+    "title": "\"The Body Keeps the Score\" — van der Kolk",
+    "desc": "The map of how early wounds live in the body.",
+    "url": "",
+    "price": ""
+  },
+  {
+    "chakra": "sacral",
+    "dosha": "Any",
+    "type": "course",
+    "title": "The Artist's Way — 12-week creative recovery",
+    "desc": "Unblocks the creative-pleasure channel, week by week.",
+    "url": "",
+    "price": ""
+  },
+  {
+    "chakra": "sacral",
+    "dosha": "Kapha",
+    "type": "sound",
+    "title": "Sacral Awakening Sound Bath · 417Hz",
+    "desc": "Movement-inviting frequency for thawing numbness.",
+    "url": "",
+    "price": ""
+  },
+  {
+    "chakra": "solar",
+    "dosha": "Any",
+    "type": "therapy",
+    "title": "Boundaries Coaching — 1:1 session",
+    "desc": "Practice saying no with a professional in your corner.",
+    "url": "",
+    "price": "from $80"
+  },
+  {
+    "chakra": "solar",
+    "dosha": "Pitta",
+    "type": "course",
+    "title": "Cooling the Fire — anger as information",
+    "desc": "Pitta-specific work: from domination to clean power.",
+    "url": "",
+    "price": ""
+  },
+  {
+    "chakra": "heart",
+    "dosha": "Any",
+    "type": "practitioner",
+    "title": "IFS Therapist Directory",
+    "desc": "Parts work for the protectors around your heart.",
+    "url": "https://ifs-institute.com/practitioners",
+    "price": ""
+  },
+  {
+    "chakra": "heart",
+    "dosha": "Any",
+    "type": "retreat",
+    "title": "Grief & Heart-Opening Retreat",
+    "desc": "Held space to finally let the dammed river move.",
+    "url": "",
+    "price": ""
+  },
+  {
+    "chakra": "heart",
+    "dosha": "Vata",
+    "type": "kit",
+    "title": "Rose & Rose-Quartz Heart Kit",
+    "desc": "Rose tea, oil, and stone — warmth for the anxious heart.",
+    "url": "",
+    "price": "$38"
+  },
+  {
+    "chakra": "throat",
+    "dosha": "Any",
+    "type": "course",
+    "title": "Nonviolent Communication Foundations",
+    "desc": "Say the hard thing without armor or apology.",
+    "url": "https://www.cnvc.org",
+    "price": ""
+  },
+  {
+    "chakra": "thirdeye",
+    "dosha": "Any",
+    "type": "course",
+    "title": "MBSR — 8-week mindfulness (free)",
+    "desc": "The gold-standard course for a clear, spacious mind.",
+    "url": "https://palousemindfulness.com",
+    "price": "free"
+  },
+  {
+    "chakra": "crown",
+    "dosha": "Any",
+    "type": "retreat",
+    "title": "Vipassana 10-day Silent Retreat",
+    "desc": "Donation-based deep silence — the crown's medicine.",
+    "url": "https://www.dhamma.org",
+    "price": "donation"
+  },
+  {
+    "chakra": "any",
+    "dosha": "Any",
+    "type": "therapy",
+    "title": "The ManKind Project (MKP) — men's work",
+    "desc": "Brotherhood + shadow work for childhood wounds men carry alone.",
+    "url": "https://mankindproject.org",
+    "price": ""
+  },
+  {
+    "chakra": "any",
+    "dosha": "Any",
+    "type": "practitioner",
+    "title": "Find a Therapist — Psychology Today",
+    "desc": "Licensed therapists by specialty, insurance, and location.",
+    "url": "https://www.psychologytoday.com",
+    "price": ""
+  }
+]

@@ -1,0 +1,36 @@
+[
+  {
+    "q": "Rest three fingers on your wrist below the thumb. The RATE of the beat?",
+    "opts": [
+      {
+        "t": "Fast and irregular — it skips, hurries, wanders",
+        "d": "Vata"
+      },
+      {
+        "t": "Strong and quick, insistent, pounding",
+        "d": "Pitta"
+      },
+      {
+        "t": "Slow, steady, rolling, unhurried",
+        "d": "Kapha"
+      }
+    ]
+  },
+  {
+    "q": "The QUALITY under your fingers? (Classical images: snake · frog · swan)",
+    "opts": [
+      {
+        "t": "Thin and slithering — a snake moving under the skin",
+        "d": "Vata"
+      },
+      {
+        "t": "Jumping and definite — a frog leaping",
+        "d": "Pitta"
+      },
+      {
+        "t": "Deep and gliding — a swan crossing water",
+        "d": "Kapha"
+      }
+    ]
+  }
+]

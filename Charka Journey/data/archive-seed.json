@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "classic",
+    "title": "Charaka Samhita (English, public domain)",
+    "by": "the lineage",
+    "url": "https://archive.org/details/charakasamhita"
+  },
+  {
+    "kind": "classic",
+    "title": "Ashtanga Hridayam — the heart of the eight limbs",
+    "by": "Vagbhata",
+    "url": "https://archive.org/search?query=ashtanga+hridayam"
+  },
+  {
+    "kind": "classic",
+    "title": "The Yoga Sutras of Patanjali",
+    "by": "Patanjali",
+    "url": "https://www.gutenberg.org/ebooks/2526"
+  },
+  {
+    "kind": "teaching",
+    "title": "The Seven Gates — this app's protocol",
+    "by": "EvolveEarth",
+    "url": ""
+  }
+]

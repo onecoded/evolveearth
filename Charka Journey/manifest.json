@@ -1,0 +1,13 @@
+{
+  "name": "The Seven Sacred Gates — EvolveEarth",
+  "short_name": "Seven Gates",
+  "description": "Chakra & dosha assessment, healing quests, the Witnessing Oracle, and your evolving Prism.",
+  "start_url": "./chakra-destiny.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080814",
+  "theme_color": "#5500bb",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "comment": "Contract addresses per network. scripts/deploy.js writes these; the app and mint widget read them with graceful fallback. Empty = not yet deployed.",
+  "networks": {
+    "subtensorTestnet": { "chainId": 945, "rpc": "https://test.chain.opentensor.ai", "SoulSignature": "", "PranaToken": "", "PranaPool": "", "InitiationRegistry": "", "MirrorDAO": "", "MedicineStory": "", "deployedAt": "" },
+    "subtensor":        { "chainId": 964, "rpc": "https://lite.chain.opentensor.ai", "SoulSignature": "", "PranaToken": "", "PranaPool": "", "InitiationRegistry": "", "MirrorDAO": "", "MedicineStory": "", "deployedAt": "" }
+  }
+}

@@ -1,0 +1,53 @@
+[
+  {
+    "q": "In a mirror: what coats the surface of your tongue?",
+    "opts": [
+      {
+        "t": "Thin or no coating, maybe dry or rough",
+        "d": "Vata"
+      },
+      {
+        "t": "Yellowish or orange coating",
+        "d": "Pitta"
+      },
+      {
+        "t": "Thick white or pale coating",
+        "d": "Kapha"
+      }
+    ]
+  },
+  {
+    "q": "The color of the tongue body itself?",
+    "opts": [
+      {
+        "t": "Pale, dull, or brownish",
+        "d": "Vata"
+      },
+      {
+        "t": "Deep red, or red at the edges/tip",
+        "d": "Pitta"
+      },
+      {
+        "t": "Pale-pink, swollen-looking, wet",
+        "d": "Kapha"
+      }
+    ]
+  },
+  {
+    "q": "The shape and edges?",
+    "opts": [
+      {
+        "t": "Thin, small, maybe trembling; visible cracks",
+        "d": "Vata"
+      },
+      {
+        "t": "Medium, pointed; maybe red spots or ulcers",
+        "d": "Pitta"
+      },
+      {
+        "t": "Large, thick, rounded; teeth-marks along the edges",
+        "d": "Kapha"
+      }
+    ]
+  }
+]

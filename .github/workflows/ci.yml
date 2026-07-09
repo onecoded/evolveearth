@@ -1,0 +1,27 @@
+name: CI
+on:
+  push:
+    branches: [master]
+    paths: ["Charka Journey/**", "EVOLVEEARTH/**", "tools/**", ".github/workflows/ci.yml"]
+  pull_request:
+
+jobs:
+  validate-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Validate the single-file app (syntax + seed data)
+        run: node tools/validate-app.js
+
+  contracts:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: EVOLVEEARTH } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: EVOLVEEARTH/package-lock.json }
+      - run: npm ci
+      - name: Hardhat tests (Prism, PRANA economy, Civilization)
+        run: npx hardhat test

@@ -1,0 +1,485 @@
+[
+  {
+    "chakra": "root",
+    "dosha": "Vata",
+    "text": "When plans change suddenly at the last minute, what happens in your body?",
+    "opts": [
+      {
+        "t": "I flex easily — change is just weather.",
+        "score": "open"
+      },
+      {
+        "t": "A wobble, then I adapt.",
+        "score": "neutral"
+      },
+      {
+        "t": "A spike of panic I have to actively manage.",
+        "score": "partial"
+      },
+      {
+        "t": "It can unravel my whole day.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "root",
+    "dosha": "Pitta",
+    "text": "When your security is threatened, your first move is…",
+    "opts": [
+      {
+        "t": "Calm assessment, then decisive action.",
+        "score": "open"
+      },
+      {
+        "t": "Make a plan — maybe over-plan.",
+        "score": "neutral"
+      },
+      {
+        "t": "Take control of everything and everyone.",
+        "score": "partial"
+      },
+      {
+        "t": "Anger and blame — someone did this to me.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "root",
+    "dosha": "Kapha",
+    "text": "How easily do you release possessions, homes, or routines that no longer serve you?",
+    "opts": [
+      {
+        "t": "Gracefully — I trust what comes next.",
+        "score": "open"
+      },
+      {
+        "t": "Slowly, but I do let go.",
+        "score": "neutral"
+      },
+      {
+        "t": "I hold on long past the expiry date.",
+        "score": "partial"
+      },
+      {
+        "t": "I cannot let go — the holding IS my safety.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "sacral",
+    "dosha": "Vata",
+    "text": "How often do emotions arrive faster and bigger than you can process?",
+    "opts": [
+      {
+        "t": "Rarely — feelings move through at a livable pace.",
+        "score": "open"
+      },
+      {
+        "t": "Sometimes, in stressful seasons.",
+        "score": "neutral"
+      },
+      {
+        "t": "Often — I flood, then need days to recover.",
+        "score": "partial"
+      },
+      {
+        "t": "Constantly — I feel hostage to my own weather.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "sacral",
+    "dosha": "Pitta",
+    "text": "Has pleasure quietly become another performance — something to optimize or win?",
+    "opts": [
+      {
+        "t": "No — I can savor without measuring.",
+        "score": "open"
+      },
+      {
+        "t": "A little; I catch myself rating experiences.",
+        "score": "neutral"
+      },
+      {
+        "t": "Yes — even vacations have goals.",
+        "score": "partial"
+      },
+      {
+        "t": "Completely — I cannot enjoy without achieving.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "sacral",
+    "dosha": "Kapha",
+    "text": "Is your comfort actually nourishment — or has it become a soft numbing?",
+    "opts": [
+      {
+        "t": "True nourishment — I rest and re-emerge alive.",
+        "score": "open"
+      },
+      {
+        "t": "Mostly real, with some cozy avoidance.",
+        "score": "neutral"
+      },
+      {
+        "t": "Half-numbing — the couch is a hiding place.",
+        "score": "partial"
+      },
+      {
+        "t": "Numbing — comfort is how I avoid feeling at all.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "solar",
+    "dosha": "Vata",
+    "text": "After you make a decision, what happens next?",
+    "opts": [
+      {
+        "t": "I stand in it and move forward.",
+        "score": "open"
+      },
+      {
+        "t": "A brief review, then commitment.",
+        "score": "neutral"
+      },
+      {
+        "t": "Second-guessing loops that drain me.",
+        "score": "partial"
+      },
+      {
+        "t": "I often reverse it — or let others decide for me.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "solar",
+    "dosha": "Pitta",
+    "text": "What does being publicly wrong feel like?",
+    "opts": [
+      {
+        "t": "Information. I update and move on.",
+        "score": "open"
+      },
+      {
+        "t": "A sting I metabolize fairly quickly.",
+        "score": "neutral"
+      },
+      {
+        "t": "A threat — I defend even when I doubt myself.",
+        "score": "partial"
+      },
+      {
+        "t": "Unbearable — I will win the argument at any cost.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "solar",
+    "dosha": "Kapha",
+    "text": "When something in your life clearly needs to change, how long before you act?",
+    "opts": [
+      {
+        "t": "Soon — I move once I see clearly.",
+        "score": "open"
+      },
+      {
+        "t": "A while — I need to warm up to action.",
+        "score": "neutral"
+      },
+      {
+        "t": "Months or years — I wait to be forced.",
+        "score": "partial"
+      },
+      {
+        "t": "I mostly don't — inertia decides for me.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "heart",
+    "dosha": "Vata",
+    "text": "In close relationships, how loud is the fear of being left?",
+    "opts": [
+      {
+        "t": "Quiet — I feel secure even in distance.",
+        "score": "open"
+      },
+      {
+        "t": "Present sometimes, but I can soothe it.",
+        "score": "neutral"
+      },
+      {
+        "t": "Loud — I scan for signs of leaving.",
+        "score": "partial"
+      },
+      {
+        "t": "Deafening — I leave first, or cling hard.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "heart",
+    "dosha": "Pitta",
+    "text": "Do you keep score in love — of efforts, wrongs, who apologized last?",
+    "opts": [
+      {
+        "t": "No — love isn't a ledger for me.",
+        "score": "open"
+      },
+      {
+        "t": "Occasionally, when I feel unseen.",
+        "score": "neutral"
+      },
+      {
+        "t": "Yes — the tally runs in the background.",
+        "score": "partial"
+      },
+      {
+        "t": "Always — and the debt is never repaid.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "heart",
+    "dosha": "Kapha",
+    "text": "When a relationship or attachment has truly ended, can you release it?",
+    "opts": [
+      {
+        "t": "Yes — with grief, gratitude, and time.",
+        "score": "open"
+      },
+      {
+        "t": "Eventually, though I carry it a while.",
+        "score": "neutral"
+      },
+      {
+        "t": "Barely — old loves still occupy the house.",
+        "score": "partial"
+      },
+      {
+        "t": "No — I hold on for years, even in pain.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "throat",
+    "dosha": "Vata",
+    "text": "When you're nervous, what happens to your speech?",
+    "opts": [
+      {
+        "t": "It stays steady — nerves don't take my voice.",
+        "score": "open"
+      },
+      {
+        "t": "A little fast, still coherent.",
+        "score": "neutral"
+      },
+      {
+        "t": "I over-talk, scatter, fill every silence.",
+        "score": "partial"
+      },
+      {
+        "t": "I either flood with words or lose them completely.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "throat",
+    "dosha": "Pitta",
+    "text": "In conflict, what do your words become?",
+    "opts": [
+      {
+        "t": "Clear and clean — firm without wounding.",
+        "score": "open"
+      },
+      {
+        "t": "Sharper than intended, then repaired.",
+        "score": "neutral"
+      },
+      {
+        "t": "Blades — I know exactly where to cut.",
+        "score": "partial"
+      },
+      {
+        "t": "Weapons I regret — or icy silence as punishment.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "throat",
+    "dosha": "Kapha",
+    "text": "How often do you swallow your truth to keep the peace?",
+    "opts": [
+      {
+        "t": "Rarely — peace built on my silence isn't peace.",
+        "score": "open"
+      },
+      {
+        "t": "Sometimes, for small things.",
+        "score": "neutral"
+      },
+      {
+        "t": "Often — my real opinions stay underground.",
+        "score": "partial"
+      },
+      {
+        "t": "Almost always — no one knows what I actually think.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "thirdeye",
+    "dosha": "Vata",
+    "text": "What is the speed of your thoughts, honestly?",
+    "opts": [
+      {
+        "t": "Spacious — thoughts arise, serve, and settle.",
+        "score": "open"
+      },
+      {
+        "t": "Quick but steerable.",
+        "score": "neutral"
+      },
+      {
+        "t": "Racing — tabs open everywhere, hard to land.",
+        "score": "partial"
+      },
+      {
+        "t": "A storm I can't slow, especially at night.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "thirdeye",
+    "dosha": "Pitta",
+    "text": "How do you hold your own opinions?",
+    "opts": [
+      {
+        "t": "Lightly — strong views, loosely held.",
+        "score": "open"
+      },
+      {
+        "t": "Firmly, but genuinely revisable.",
+        "score": "neutral"
+      },
+      {
+        "t": "Rigidly — being right feels like survival.",
+        "score": "partial"
+      },
+      {
+        "t": "As identity — changing my mind feels like dying.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "thirdeye",
+    "dosha": "Kapha",
+    "text": "Is there a truth about your life you keep choosing not to look at?",
+    "opts": [
+      {
+        "t": "No — I look, even when it costs me.",
+        "score": "open"
+      },
+      {
+        "t": "One or two I circle slowly.",
+        "score": "neutral"
+      },
+      {
+        "t": "Yes — the fog around it is half-chosen.",
+        "score": "partial"
+      },
+      {
+        "t": "Yes — and I keep myself busy so I never have to.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "crown",
+    "dosha": "Vata",
+    "text": "What does your spiritual seeking look like?",
+    "opts": [
+      {
+        "t": "A steady, rooted practice that deepens.",
+        "score": "open"
+      },
+      {
+        "t": "A main path with curious detours.",
+        "score": "neutral"
+      },
+      {
+        "t": "Chasing every new practice, mastering none.",
+        "score": "partial"
+      },
+      {
+        "t": "Frantic seeking that never lets me arrive.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "crown",
+    "dosha": "Pitta",
+    "text": "Be honest: is your spirituality partly an achievement?",
+    "opts": [
+      {
+        "t": "No — it's a surrender, not a resume.",
+        "score": "open"
+      },
+      {
+        "t": "A little pride sneaks in sometimes.",
+        "score": "neutral"
+      },
+      {
+        "t": "Yes — I track my progress toward \"awakened.\"",
+        "score": "partial"
+      },
+      {
+        "t": "Entirely — I need to be the most conscious person in the room.",
+        "score": "blocked"
+      }
+    ]
+  },
+  {
+    "chakra": "crown",
+    "dosha": "Kapha",
+    "text": "When did you last feel genuine awe — the sacred, unmistakably present?",
+    "opts": [
+      {
+        "t": "Recently — awe visits me often.",
+        "score": "open"
+      },
+      {
+        "t": "Within the year; I can still be pierced.",
+        "score": "neutral"
+      },
+      {
+        "t": "A long time ago — the channel feels dusty.",
+        "score": "partial"
+      },
+      {
+        "t": "I can't remember — nothing feels sacred anymore.",
+        "score": "blocked"
+      }
+    ]
+  }
+]

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chakra Journey — Admin</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#06060f;color:#e0d8f0;font-family:'Georgia','Times New Roman',serif;min-height:100vh;padding:0 0 80px}
+
+/* HEADER */
+.adm-header{background:rgba(8,8,20,.98);border-bottom:1px solid rgba(140,80,255,.25);padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.adm-title{font-size:1em;letter-spacing:4px;text-transform:uppercase;color:#cc88ff;flex:1}
+.adm-nav-link{color:#9977cc;text-decoration:none;font-size:.78em;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(140,80,255,.3);padding:7px 14px;border-radius:30px;transition:all .2s}
+.adm-nav-link:hover{background:rgba(140,80,255,.15);color:#cc88ff}
+.adm-save-btn{background:linear-gradient(135deg,#5500bb,#9922ff);color:#fff;border:none;border-radius:30px;padding:9px 22px;cursor:pointer;font-family:inherit;font-size:.78em;letter-spacing:2px;text-transform:uppercase;transition:all .25s}
+.adm-save-btn:hover{transform:translateY(-1px);box-shadow:0 0 20px rgba(140,0,255,.5)}
+.adm-reset{background:none;border:1px solid rgba(255,80,80,.3);color:#ff8888;border-radius:30px;padding:7px 14px;cursor:pointer;font-family:inherit;font-size:.72em;letter-spacing:1px;transition:all .2s}
+.adm-reset:hover{background:rgba(255,80,80,.1)}
+
+/* FLASH */
+#save-flash{position:fixed;top:70px;right:20px;background:#006633;color:#88ffcc;padding:10px 20px;border-radius:8px;font-size:.82em;letter-spacing:1px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+#save-flash.show{opacity:1}
+
+/* CHAKRA SECTIONS */
+.chakra-block{margin:16px 20px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.chakra-hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;transition:background .2s}
+.chakra-hdr:hover{background:rgba(255,255,255,.04)}
+.chakra-hdr-emoji{font-size:1.4em}
+.chakra-hdr-name{flex:1;font-size:.9em;letter-spacing:3px;text-transform:uppercase}
+.chakra-hdr-toggle{font-size:.7em;opacity:.5;transition:transform .3s}
+.chakra-body{display:none;padding:6px 16px 18px}
+.chakra-body.open{display:block}
+
+/* SUB-SECTIONS */
+.sub-section{margin-top:16px}
+.sub-label{font-size:.65em;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.sub-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+
+/* ITEM ROWS */
+.item-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:start}
+.item-row.products-row{grid-template-columns:1fr 1fr 80px 1fr auto}
+.item-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:#e0d8f0;font-family:inherit;font-size:.8em;width:100%;outline:none;transition:border-color .2s}
+.item-input:focus{border-color:rgba(140,80,255,.5);background:rgba(140,80,255,.06)}
+.item-input::placeholder{color:rgba(255,255,255,.25)}
+.item-delete{background:none;border:1px solid rgba(255,80,80,.25);color:#ff8888;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:.9em;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-top:2px}
+.item-delete:hover{background:rgba(255,80,80,.15)}
+.add-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.75em;letter-spacing:1px;transition:all .2s;margin-top:4px}
+.add-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* VIDEO OVERRIDE */
+.video-row{display:flex;gap:10px;align-items:center;margin-top:6px}
+.video-row .item-input{max-width:320px}
+.video-preview{font-size:.72em;color:#9977cc;margin-top:4px}
+
+@media(max-width:700px){
+  .item-row{grid-template-columns:1fr auto}
+  .item-row.products-row{grid-template-columns:1fr auto}
+  .item-row .item-input:not(:first-child){display:none}
+  .adm-title{font-size:.8em}
+}
+</style>
+</head>
+<body>
+
+<div class="adm-header">
+  <div class="adm-title">✦ Chakra Journey Admin ✦</div>
+  <a class="adm-nav-link" href="chakra-destiny.html" target="_blank">View App →</a>
+  <button class="adm-reset" onclick="resetAll()">Reset All</button>
+  <button class="adm-save-btn" onclick="saveAll()">💾 Save Changes</button>
+</div>
+
+<div id="save-flash">✓ Saved to browser storage</div>
+
+<!-- GLOBAL SECTIONS: Question Bank · Marketplace · Resource Library -->
+<div id="global-sections"></div>
+
+<div id="chakra-sections"></div>
+
+<script>
+const ADMIN_KEY = 'chakra_admin_cfg';
+
+const CHAKRAS = [
+  { id:'root',     name:'Root Chakra',      sanskrit:'Muladhara',    emoji:'🔴', color:'#cc2222' },
+  { id:'sacral',   name:'Sacral Chakra',    sanskrit:'Svadhisthana', emoji:'🟠', color:'#ff6622' },
+  { id:'solar',    name:'Solar Plexus',     sanskrit:'Manipura',     emoji:'🟡', color:'#ffcc00' },
+  { id:'heart',    name:'Heart Chakra',     sanskrit:'Anahata',      emoji:'🟢', color:'#22cc66' },
+  { id:'throat',   name:'Throat Chakra',    sanskrit:'Vishuddha',    emoji:'🔵', color:'#2288cc' },
+  { id:'thirdeye', name:'Third Eye',        sanskrit:'Ajna',         emoji:'💜', color:'#6644cc' },
+  { id:'crown',    name:'Crown Chakra',     sanskrit:'Sahasrara',    emoji:'⚪', color:'#cc88ff' }
+];
+
+// In-memory config
+let CONFIG = {};
+
+function emptyChakra() {
+  return { medicine:[], shadow:[], products:[], resources:[], videoId:'', ayurvedic:[], topPicks:[] };
+}
+
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(ADMIN_KEY);
+    CONFIG = raw ? JSON.parse(raw) : {};
+  } catch(e) { CONFIG = {}; }
+  CHAKRAS.forEach(ch => {
+    if (!CONFIG[ch.id]) CONFIG[ch.id] = emptyChakra();
+  });
+}
+
+function saveAll() {
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+  const fl = document.getElementById('save-flash');
+  fl.classList.add('show');
+  setTimeout(() => fl.classList.remove('show'), 2200);
+}
+
+function resetAll() {
+  if (!confirm('Reset all admin config? This cannot be undone.')) return;
+  localStorage.removeItem(ADMIN_KEY);
+  loadConfig();
+  renderAll();
+}
+
+// ─── ITEM MANAGEMENT ───────────────────────────────────────
+function addItem(chakraId, type) {
+  if (!CONFIG[chakraId]) CONFIG[chakraId] = emptyChakra();
+  const blank = type === 'products'
+    ? { label:'', url:'', price:'', desc:'' }
+    : { label:'', url:'', desc:'' };
+  CONFIG[chakraId][type].push(blank);
+  renderChakra(chakraId);
+  autoSave();
+}
+
+function removeItem(chakraId, type, idx) {
+  CONFIG[chakraId][type].splice(idx, 1);
+  renderChakra(chakraId);
+  autoSave();
+}
+
+function updateItem(chakraId, type, idx, field, value) {
+  if (!CONFIG[chakraId]) CONFIG[chakraId] = emptyChakra();
+  if (!CONFIG[chakraId][type][idx]) return;
+  CONFIG[chakraId][type][idx][field] = value;
+}
+
+function updateVideo(chakraId, value) {
+  if (!CONFIG[chakraId]) CONFIG[chakraId] = emptyChakra();
+  CONFIG[chakraId].videoId = value;
+}
+
+function autoSave() {
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+}
+
+// ─── RENDER ────────────────────────────────────────────────
+function renderAll() {
+  const container = document.getElementById('chakra-sections');
+  container.innerHTML = '';
+  CHAKRAS.forEach((ch, i) => {
+    const block = document.createElement('div');
+    block.className = 'chakra-block';
+    block.id = `block-${ch.id}`;
+    block.style.borderColor = ch.color + '44';
+    block.innerHTML = `
+      <div class="chakra-hdr" style="background:${ch.color}0d" onclick="toggleChakra('${ch.id}')">
+        <span class="chakra-hdr-emoji">${ch.emoji}</span>
+        <span class="chakra-hdr-name" style="color:${ch.color}">${ch.name} · ${ch.sanskrit}</span>
+        <span class="chakra-hdr-toggle" id="toggle-${ch.id}">▼</span>
+      </div>
+      <div class="chakra-body" id="body-${ch.id}"></div>`;
+    container.appendChild(block);
+    renderChakra(ch.id);
+    // Open first chakra by default
+    if (i === 0) toggleChakra(ch.id);
+  });
+}
+
+function toggleChakra(id) {
+  const body = document.getElementById(`body-${id}`);
+  const tog  = document.getElementById(`toggle-${id}`);
+  const open = body.classList.toggle('open');
+  tog.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function renderChakra(chakraId) {
+  const body = document.getElementById(`body-${chakraId}`);
+  if (!body) return;
+  const data = CONFIG[chakraId] || emptyChakra();
+  const ch   = CHAKRAS.find(c => c.id === chakraId);
+
+  body.innerHTML = `
+    ${renderSection(chakraId, 'topPicks',  '⭐ Top Recommended — Ayurvedic Solutions (shown near top of reading)', data.topPicks||[], false)}
+    ${renderSection(chakraId, 'ayurvedic', '🌿 Ayurveda Lifestyle Links', data.ayurvedic||[], false)}
+    ${renderSection(chakraId, 'medicine', '💊 Medicine Links', data.medicine, false)}
+    ${renderSection(chakraId, 'shadow',   '🔮 Shadow Work Resources', data.shadow, false)}
+    ${renderSection(chakraId, 'products', '✨ Products', data.products, true)}
+    ${renderSection(chakraId, 'resources','📚 Custom Resources', data.resources, false)}
+    <div class="sub-section">
+      <div class="sub-label">🎬 Video Override</div>
+      <div class="video-row">
+        <input class="item-input" type="text"
+          placeholder="YouTube video ID (e.g. dQw4w9WgXcQ)"
+          value="${escVal(data.videoId || '')}"
+          onchange="updateVideo('${chakraId}', this.value); autoSave()"
+          oninput="updateVideo('${chakraId}', this.value)" />
+        <span style="font-size:.72em;color:rgba(255,255,255,.35)">replaces default video</span>
+      </div>
+      ${data.videoId ? `<div class="video-preview">Preview: <a href="https://www.youtube.com/watch?v=${escVal(data.videoId)}" target="_blank" style="color:#6699ff">youtube.com/watch?v=${escVal(data.videoId)}</a></div>` : ''}
+    </div>`;
+}
+
+function renderSection(chakraId, type, label, items, isProducts) {
+  const rows = items.map((item, idx) => renderItemRow(chakraId, type, idx, item, isProducts)).join('');
+  return `<div class="sub-section">
+    <div class="sub-label">${label}</div>
+    <div id="items-${chakraId}-${type}">${rows}</div>
+    <button class="add-btn" onclick="addItem('${chakraId}','${type}')">＋ Add ${isProducts ? 'Product' : 'Link'}</button>
+  </div>`;
+}
+
+function renderItemRow(chakraId, type, idx, item, isProducts) {
+  const cls = isProducts ? 'item-row products-row' : 'item-row';
+  const priceField = isProducts
+    ? `<input class="item-input" type="text" placeholder="Price (e.g. $29)"
+         value="${escVal(item.price||'')}"
+         onchange="updateItem('${chakraId}','${type}',${idx},'price',this.value);autoSave()" />`
+    : '';
+  return `<div class="${cls}">
+    <input class="item-input" type="text" placeholder="Label / Title"
+       value="${escVal(item.label||'')}"
+       onchange="updateItem('${chakraId}','${type}',${idx},'label',this.value);autoSave()" />
+    <input class="item-input" type="url" placeholder="URL"
+       value="${escVal(item.url||'')}"
+       onchange="updateItem('${chakraId}','${type}',${idx},'url',this.value);autoSave()" />
+    ${priceField}
+    <input class="item-input" type="text" placeholder="Short description"
+       value="${escVal(item.desc||'')}"
+       onchange="updateItem('${chakraId}','${type}',${idx},'desc',this.value);autoSave()" />
+    <button class="item-delete" onclick="removeItem('${chakraId}','${type}',${idx})" title="Remove">✕</button>
+  </div>`;
+}
+
+function escVal(s) {
+  return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════
+// GLOBAL STORES — Question Bank · Marketplace · Resource Library
+// The app (chakra-destiny.html) merges these with its built-in seeds.
+// ═══════════════════════════════════════════════════════════
+const QB_KEY  = 'chakra_question_db_custom';
+const MKT_KEY = 'chakra_marketplace_custom';
+const RES_KEY = 'chakra_resources_custom';
+const DOSHAS  = ['Any','Vata','Pitta','Kapha'];
+const SCORES  = ['open','neutral','partial','blocked'];
+const MKT_TYPES = ['practitioner','course','kit','sound','retreat','book','therapy'];
+const RES_KINDS = ['video','image','text','oracle'];
+
+let QB = [], MKT = [], RES = [];
+function loadGlobals(){
+  try{ QB  = JSON.parse(localStorage.getItem(QB_KEY)  || '[]'); }catch(e){ QB=[]; }
+  try{ MKT = JSON.parse(localStorage.getItem(MKT_KEY) || '[]'); }catch(e){ MKT=[]; }
+  try{ RES = JSON.parse(localStorage.getItem(RES_KEY) || '[]'); }catch(e){ RES=[]; }
+}
+function saveGlobals(){
+  localStorage.setItem(QB_KEY,  JSON.stringify(QB));
+  localStorage.setItem(MKT_KEY, JSON.stringify(MKT));
+  localStorage.setItem(RES_KEY, JSON.stringify(RES));
+  const fl=document.getElementById('save-flash'); fl.classList.add('show');
+  setTimeout(()=>fl.classList.remove('show'),1500);
+}
+
+function selHtml(opts, val, onchange){
+  return `<select class="item-input" style="max-width:130px" onchange="${onchange}">` +
+    opts.map(o=>`<option value="${o}"${o===val?' selected':''}>${o}</option>`).join('') + `</select>`;
+}
+function chakraSel(val, onchange){
+  const list = [{id:'any',name:'Any chakra'}].concat(CHAKRAS.map(c=>({id:c.id,name:c.name})));
+  return `<select class="item-input" style="max-width:150px" onchange="${onchange}">` +
+    list.map(c=>`<option value="${c.id}"${c.id===val?' selected':''}>${c.name}</option>`).join('') + `</select>`;
+}
+
+// ─── QUESTION BANK ─────────────────────────────────────────
+function qbAdd(){
+  QB.push({ chakra:'root', dosha:'Any', text:'',
+    opts:[{t:'',score:'open'},{t:'',score:'neutral'},{t:'',score:'partial'},{t:'',score:'blocked'}] });
+  renderGlobals(); saveGlobals();
+}
+function qbDel(i){ QB.splice(i,1); renderGlobals(); saveGlobals(); }
+function qbSet(i,f,v){ QB[i][f]=v; saveGlobals(); }
+function qbSetOpt(i,oi,f,v){ QB[i].opts[oi][f]=v; saveGlobals(); }
+
+function renderQB(){
+  const rows = QB.map((q,i)=>`
+    <div style="border:1px solid rgba(140,80,255,.2);border-radius:10px;padding:12px;margin-bottom:10px;background:rgba(140,80,255,.04)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        ${chakraSel(q.chakra, `qbSet(${i},'chakra',this.value)`)}
+        ${selHtml(DOSHAS, q.dosha, `qbSet(${i},'dosha',this.value)`)}
+        <button class="item-delete" onclick="qbDel(${i})" title="Delete question">✕</button>
+      </div>
+      <input class="item-input" style="margin-bottom:8px" type="text" placeholder="Question text — asked during that chakra's gate"
+        value="${escVal(q.text)}" onchange="qbSet(${i},'text',this.value)">
+      ${q.opts.map((o,oi)=>`
+        <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:6px">
+          <input class="item-input" type="text" placeholder="Answer option ${oi+1}"
+            value="${escVal(o.t)}" onchange="qbSetOpt(${i},${oi},'t',this.value)">
+          ${selHtml(SCORES, o.score, `qbSetOpt(${i},${oi},'score',this.value)`)}
+        </div>`).join('')}
+    </div>`).join('');
+  return `<div class="sub-section">
+    <div class="sub-label">❓ QUESTION BANK — custom assessment questions (labeled by chakra + dosha; the app asks them in that gate's deep-dive)</div>
+    ${rows || '<div style="font-size:.75em;opacity:.4;margin-bottom:8px">No custom questions yet. The app ships with a built-in master list; anything you add here is asked in addition.</div>'}
+    <button class="add-btn" onclick="qbAdd()">＋ Add Question</button>
+  </div>`;
+}
+
+// ─── MARKETPLACE ───────────────────────────────────────────
+function mktAdd(){ MKT.push({chakra:'any',dosha:'Any',type:'practitioner',title:'',desc:'',url:'',price:''}); renderGlobals(); saveGlobals(); }
+function mktDel(i){ MKT.splice(i,1); renderGlobals(); saveGlobals(); }
+function mktSet(i,f,v){ MKT[i][f]=v; saveGlobals(); }
+
+function renderMKT(){
+  const rows = MKT.map((m,i)=>`
+    <div style="border:1px solid rgba(0,180,120,.2);border-radius:10px;padding:12px;margin-bottom:10px;background:rgba(0,180,120,.04)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        ${chakraSel(m.chakra, `mktSet(${i},'chakra',this.value)`)}
+        ${selHtml(DOSHAS, m.dosha, `mktSet(${i},'dosha',this.value)`)}
+        ${selHtml(MKT_TYPES, m.type, `mktSet(${i},'type',this.value)`)}
+        <input class="item-input" style="max-width:100px" type="text" placeholder="Price"
+          value="${escVal(m.price||'')}" onchange="mktSet(${i},'price',this.value)">
+        <button class="item-delete" onclick="mktDel(${i})">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+        <input class="item-input" type="text" placeholder="Offering title" value="${escVal(m.title)}" onchange="mktSet(${i},'title',this.value)">
+        <input class="item-input" type="url" placeholder="Link (booking / product URL)" value="${escVal(m.url)}" onchange="mktSet(${i},'url',this.value)">
+      </div>
+      <input class="item-input" type="text" placeholder="Short description — what imbalance does this help?" value="${escVal(m.desc)}" onchange="mktSet(${i},'desc',this.value)">
+    </div>`).join('');
+  return `<div class="sub-section">
+    <div class="sub-label">🛒 MARKETPLACE — offerings matched to chakra + dosha imbalances (practitioners, courses, kits, sound, retreats, therapy)</div>
+    ${rows || '<div style="font-size:.75em;opacity:.4;margin-bottom:8px">No custom offerings yet. Seeded defaults show in the app; yours appear alongside.</div>'}
+    <button class="add-btn" onclick="mktAdd()">＋ Add Offering</button>
+  </div>`;
+}
+
+// ─── RESOURCE LIBRARY ──────────────────────────────────────
+function resAdd(){ RES.push({chakra:'any',dosha:'Any',kind:'video',title:'',body:''}); renderGlobals(); saveGlobals(); }
+function resDel(i){ RES.splice(i,1); renderGlobals(); saveGlobals(); }
+function resSet(i,f,v){ RES[i][f]=v; saveGlobals(); }
+
+function renderRES(){
+  const hint = {video:'YouTube URL or video ID', image:'Image URL', text:'The teaching / passage itself', oracle:'Oracle prompt — opens a session seeded with this'};
+  const rows = RES.map((r,i)=>`
+    <div style="border:1px solid rgba(80,140,255,.2);border-radius:10px;padding:12px;margin-bottom:10px;background:rgba(80,140,255,.04)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        ${chakraSel(r.chakra, `resSet(${i},'chakra',this.value)`)}
+        ${selHtml(DOSHAS, r.dosha, `resSet(${i},'dosha',this.value)`)}
+        ${selHtml(RES_KINDS, r.kind, `resSet(${i},'kind',this.value)`)}
+        <button class="item-delete" onclick="resDel(${i})">✕</button>
+      </div>
+      <input class="item-input" style="margin-bottom:6px" type="text" placeholder="Title" value="${escVal(r.title)}" onchange="resSet(${i},'title',this.value)">
+      <textarea class="item-input" rows="2" placeholder="${hint[r.kind]||'Content'}" onchange="resSet(${i},'body',this.value)">${escVal(r.body)}</textarea>
+    </div>`).join('');
+  return `<div class="sub-section">
+    <div class="sub-label">📚 RESOURCE LIBRARY — videos, images, texts &amp; oracle prompts for specific imbalances</div>
+    ${rows || '<div style="font-size:.75em;opacity:.4;margin-bottom:8px">No custom resources yet.</div>'}
+    <button class="add-btn" onclick="resAdd()">＋ Add Resource</button>
+  </div>`;
+}
+
+function renderGlobals(){
+  document.getElementById('global-sections').innerHTML =
+    `<div class="chakra-block" style="border-color:rgba(140,80,255,.35)">
+       <div class="chakra-hdr" style="background:rgba(140,80,255,.08)" onclick="toggleChakra('globals')">
+         <span class="chakra-hdr-emoji">🗄️</span>
+         <span class="chakra-hdr-name" style="color:#cc88ff">Master Database — Questions · Marketplace · Resources</span>
+         <span class="chakra-hdr-toggle" id="toggle-globals">▼</span>
+       </div>
+       <div class="chakra-body" id="body-globals">${renderQB()}${renderMKT()}${renderRES()}</div>
+     </div>`;
+}
+
+// ─── INIT ──────────────────────────────────────────────────
+loadConfig();
+loadGlobals();
+renderGlobals();
+renderAll();
+// Open the master database section by default
+toggleChakra('globals');
+</script>
+</body>
+</html>

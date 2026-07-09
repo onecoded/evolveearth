@@ -1,0 +1,23 @@
+{
+  "name": "evolveearth-soul-signature",
+  "version": "0.1.0",
+  "description": "Fully on-chain Soul Signature NFT for the EvolveEarth healing ecosystem (Base / EVM).",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.js",
+    "deploy:testnet": "hardhat run scripts/deploy.js --network subtensorTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network subtensor",
+    "mint": "hardhat run scripts/mint.js --network subtensorTestnet",
+    "preview": "hardhat run scripts/preview.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.0.2",
+    "dotenv": "^16.4.5"
+  }
+}
