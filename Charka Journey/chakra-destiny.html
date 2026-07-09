@@ -484,7 +484,7 @@ body{cursor:crosshair}
 
 /* MOBILE TOUCH + RESPONSIVE */
 @media(max-width:768px){
-  .ans-btn,.ls-btn{touch-action:none;-webkit-tap-highlight-color:transparent;min-height:52px}
+  .ans-btn,.ls-btn{touch-action:pan-y;-webkit-tap-highlight-color:transparent;min-height:52px}
   .btn-enter,.of-continue,.btn-next,.btn-save{touch-action:manipulation}
   .cf-row{flex-direction:column}
   .cf-row input{min-width:100%;flex:none}
@@ -640,6 +640,39 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
 *{scrollbar-width:thin;scrollbar-color:var(--glow-violet) transparent}
 
 @media (prefers-reduced-motion: reduce){ #aurora,#grain,.yantra .yantra-rot{animation:none} }
+
+/* ── MOBILE READABILITY — nothing squints on a phone ── */
+@media (max-width:640px){
+  body{font-size:16.5px}
+  .gate-card{padding:16px 12px}
+  .gate-q{font-size:1.08em}
+  .gate-intro{font-size:.92em}
+  .deep-q{font-size:.86em}
+  .ans-btn,.ls-btn{font-size:.95em;min-height:56px;padding:14px 12px}
+  .ans-text{line-height:1.55}
+  .btn-sm{min-height:44px;padding:10px 16px}
+  .jp-leaf-btn,.oracle-link-btn,.btn-next,.btn-enter{min-height:48px}
+  /* iOS zooms any focused input under 16px — never let that happen */
+  input,select,textarea{font-size:16px !important}
+  .oracle-msg{font-size:.98em;max-width:100%}
+  .oracle-msg.question{font-size:1.06em;padding:15px 13px}
+  #oracle-user-input{font-size:16px !important}
+  .summary-card{padding:18px 13px}
+  .sum-desc{font-size:.95em}
+  .med-list li{font-size:.9em}
+  .rc-body{font-size:.92em}
+  .sw-prompt{font-size:.86em}
+  .tab-item-title{font-size:.96em}
+  .tab-item-desc{font-size:.86em}
+  .dash-name{width:62px;font-size:.74em}
+  .rtab{font-size:.74em;padding:9px 8px;min-height:40px}
+  .trait-row{font-size:.9em}
+  .tech-note,.res-course-desc{font-size:.76em}
+  .cp-sub,.community-sub{font-size:.88em}
+  #jp-question{font-size:1em}
+  .jp-branch-btn{font-size:.92em;min-height:52px}
+  .ref-q{font-size:.92em}
+}
 </style>
 </head>
 <body>
@@ -3589,9 +3622,31 @@ function addProximitySelect(btn, color, freq, onSelect, opts = {}) {
   });
 
   // ── TOUCH SUPPORT ──────────────────────────────────
+  // Press-and-hold: a stationary finger never fires touchmove, so the
+  // 3-second charge must begin on touchstart. Scrolling (touch-action:
+  // pan-y) fires touchcancel, which releases the charge cleanly.
+  function handleTouchStart(e) {
+    if (triggered) return;
+    if (!dwellTimer && !charging) {
+      charging = true;
+      btn.classList.add('dot-charging');
+      startChargeTone(freq);
+      dwellTimer = setTimeout(() => {
+        if (!triggered) {
+          triggered = true;
+          setProxVol(0);
+          stopChargeTone(true);
+          playSelectTone(freq);
+          btn.classList.remove('dot-charging');
+          btn.classList.add('dot-burst');
+          setTimeout(onSelect, 90);
+        }
+      }, DWELL_MS);
+    }
+  }
+
   function handleTouchMove(e) {
     if (triggered) return;
-    e.preventDefault();
     const t = e.touches[0];
     if (!t) return;
     const dc   = dotCenter();
@@ -3657,7 +3712,8 @@ function addProximitySelect(btn, color, freq, onSelect, opts = {}) {
     }
   }
 
-  btn.addEventListener('touchmove',  handleTouchMove, { passive: false });
+  btn.addEventListener('touchstart', handleTouchStart, { passive: true });
+  btn.addEventListener('touchmove',  handleTouchMove, { passive: true });
   btn.addEventListener('touchend',   handleTouchEnd,  { passive: true  });
   btn.addEventListener('touchcancel',handleTouchEnd,  { passive: true  });
 }
@@ -3998,7 +4054,7 @@ function buildGateScreens() {
         <div class="gate-q">${ch.question}</div>
         <div class="answers-wrap" id="answers-${i}">${ans}</div>
         <div style="font-size:.66em;color:#665a80;text-align:center;margin-top:9px;font-style:italic;letter-spacing:.5px">
-          Rest on your answer for <strong style="color:${ch.color}">3 seconds</strong> to choose it — feel it charge, hear it rise. Move away to release.
+          Rest your cursor — or hold your finger — on an answer for <strong style="color:${ch.color}">3 seconds</strong> to choose it. Feel it charge, hear it rise. Let go to release.
         </div>
         <div id="ls-block-${i}" class="lifestyle-block" style="display:none;border-color:${ch.color}22">
           <div class="ls-label" style="color:${ch.color}cc">${ch.lifestyle.label}</div>
