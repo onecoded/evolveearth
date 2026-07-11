@@ -802,6 +802,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
     <div id="oracle-panel-header">
       <span id="oracle-panel-title">✦ YOUR PERSONAL ORACLE</span>
       <div style="display:flex;gap:6px;align-items:center">
+        <button class="oracle-hdr-btn" onclick="oracleConfigureApi()" title="Connect the Oracle's API brain">⚙</button>
         <button class="oracle-hdr-btn" id="oracle-tts-btn" title="Toggle oracle voice">🔊</button>
         <button class="oracle-hdr-btn" id="oracle-close-btn">✕</button>
       </div>
@@ -6229,6 +6230,29 @@ function buildWitnessScript(name) {
 // (matched solutions from the affiliate marketplace, per chakra).
 // ═════════════════════════════════════════════════════════════
 let _oracleLastChakra = null;
+let _oracleConvo = []; // rolling conversation memory for the API brain
+
+// Compact record for the API — scalars and names only, the member's own data.
+function _witnessCorpusCompact() {
+  try {
+    const c = _witnessCorpus();
+    return {
+      daysKnown: c.daysKnown, readings: c.readings, flowNow: c.flowNow, flowDelta: c.flowDelta,
+      streak: c.streak, practiceDays: c.practiceDays, sadhana: c.sadhana,
+      agni: c.agni ? c.agni.name : null, dreams: c.dreams, dreamLeans: c.dreamLeans,
+      dominantDosha: c.dom,
+      woundedGates: c.wounded.map(x => x.ch.name),
+      untouchedWounds: c.woundedUntouched.map(x => x.ch.name),
+      storiesMinted: c.storiesMinted, storiesAcquired: c.storiesAcquired,
+      ritesBegun: c.ritesBegun, ritesSealed: c.ritesSealed,
+      bondedWith: c.bond ? c.bond.partner : null,
+      mentorship: c.mentor ? c.mentor.role : null,
+      skillOffers: c.skillOffers, skillNeeds: c.skillNeeds, exchanges: c.swaps,
+      lineageSouls: c.lineage, milestones: c.milestones,
+      recentAsks: (c.asks || []).slice(0, 5).map(a => a.text),
+    };
+  } catch (e) { return null; }
+}
 
 function buildOracleScript(seedContext) {
   const sessions2 = JSON.parse(localStorage.getItem('chakra_sessions') || '[]');
@@ -6485,6 +6509,9 @@ function appendOracleMsg(role, text, extraClass) {
   const msgs = document.getElementById('oracle-messages');
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
+  // Rolling memory for the API brain.
+  _oracleConvo.push({ role: role === 'user' ? 'user' : 'assistant', text: String(text).slice(0, 2000) });
+  while (_oracleConvo.length > 20) _oracleConvo.shift();
 }
 
 function appendOracleHtml(html) {
@@ -6513,7 +6540,7 @@ function oracleSendInput() {
 
   // The Oracle RESPONDS to what was actually said — no canned phrases.
   _oracleTyping = true;
-  const reply = _oracleReflect(text, _oracleLastChakra);
+  const localReply = _oracleReflect(text, _oracleLastChakra);
   const msgs = document.getElementById('oracle-messages');
   const thinkEl = document.createElement('div');
   thinkEl.className = 'oracle-msg thinking';
@@ -6521,13 +6548,43 @@ function oracleSendInput() {
   msgs.appendChild(thinkEl);
   msgs.scrollTop = msgs.scrollHeight;
 
-  setTimeout(() => {
+  const show = (reply) => {
     thinkEl.remove();
     appendOracleMsg('assistant', reply);
     ttsEnqueue(reply);
     _oracleTyping = false;
     setTimeout(_oracleAdvance, 1400); // then the next layer: deeper question or the medicine
-  }, 700);
+  };
+
+  // With a proxy connected, Claude itself answers as the Oracle — full
+  // longitudinal context. Without one (or on any failure), the built-in
+  // reflection engine answers. The Oracle never goes silent.
+  const api = Store.get('chakra_oracle_api', '');
+  if (api) {
+    fetch(api, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ messages: _oracleConvo, corpus: _witnessCorpusCompact() }),
+    })
+      .then(r => r.json())
+      .then(d => show(d && d.reply ? d.reply : localReply))
+      .catch(() => show(localReply));
+  } else {
+    setTimeout(() => show(localReply), 700);
+  }
+}
+
+// ⚙ Connect / disconnect the Oracle's API brain (the proxy URL).
+function oracleConfigureApi() {
+  const cur = Store.get('chakra_oracle_api', '');
+  const v = prompt(
+    'Oracle brain — paste your oracle-proxy worker URL (see oracle-proxy/README.md).\nLeave empty to use the built-in reflection engine.',
+    cur
+  );
+  if (v === null) return;
+  const url = v.trim();
+  if (url) { Store.set('chakra_oracle_api', url); _pranaToast(0, 'Oracle brain connected'); }
+  else { Store.remove('chakra_oracle_api'); _pranaToast(0, 'Oracle brain disconnected — built-in engine active'); }
 }
 
 function toggleOracleTTS() {
