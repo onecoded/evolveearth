@@ -6248,6 +6248,9 @@ function buildWitnessScript(name) {
 // ═════════════════════════════════════════════════════════════
 let _oracleLastChakra = null;
 let _oracleConvo = []; // rolling conversation memory for the API brain
+// COMPANION MEMORY — the conversation survives the session. The Oracle
+// remembers what you told it last time, across days, on this device.
+try { const _oc = Store.get('chakra_oracle_convo', null); if (_oc && Array.isArray(_oc.msgs)) _oracleConvo = _oc.msgs; } catch (e) {}
 
 // Compact record for the API — scalars and names only, the member's own data.
 function _witnessCorpusCompact() {
@@ -6269,6 +6272,22 @@ function _witnessCorpusCompact() {
       spiritClock: c.clock,
       recentAsks: (c.asks || []).slice(0, 5).map(a => a.text),
     };
+  } catch (e) { return null; }
+}
+
+// COMPANION MEMORY — if we spoke before (more than half a day ago), the
+// Oracle opens by returning to the last true thing the member said.
+function _companionRemembrance() {
+  try {
+    const mem = _store('chakra_oracle_convo', null);
+    if (!mem || !mem.t || !Array.isArray(mem.msgs)) return null;
+    if (Date.now() - mem.t < 43200000) return null; // same sitting — no ceremony
+    const lastSaid = [...mem.msgs].reverse().find(m => m.role === 'user' && m.text && m.text.trim().length > 8);
+    if (!lastSaid) return null;
+    const days = Math.round((Date.now() - mem.t) / 86400000);
+    const when = days <= 1 ? 'Yesterday' : days <= 30 ? `${days} days ago` : 'The last time we spoke';
+    const frag = lastSaid.text.length > 90 ? lastSaid.text.slice(0, 87).trim() + '…' : lastSaid.text.trim();
+    return { text: `Before we begin — I have not forgotten. ${when}, you told me: "${frag}". Does that still live in you the same way, or has it moved?`, wait: true };
   } catch (e) { return null; }
 }
 
@@ -6306,6 +6325,8 @@ function buildOracleScript(seedContext) {
 
   if (!wounded.length) {
     script.push({ text: `${name || 'Seeker'} — all seven gates stand open. Rare. So we deepen instead of repair.`, wait: false });
+    const _remOpen = _companionRemembrance();
+    if (_remOpen) script.push(_remOpen);
     script.push({ text: 'What is your open energy FOR? Name the one thing it is being called to build or serve.', wait: true });
     script.push({ text: 'Hold that answer. It is your next chapter.', wait: false });
     return script;
@@ -6315,10 +6336,20 @@ function buildOracleScript(seedContext) {
   // The Mirror first — the arc, not just today — so they feel SEEN before challenged.
   const _wc = _witnessCorpus();
   if (_wc.daysKnown >= 2 || _wc.practiceDays >= 2) script.push({ text: _witnessMirror(_wc, name), wait: false });
+  const _rem = _companionRemembrance();
+  if (_rem) script.push(_rem);
   script.push({ text: `${(_wc.daysKnown >= 2 || _wc.practiceDays >= 2) ? '' : (name ? name + ' — ' : '')}I see ${names} holding. ${wounded.length === 1 ? 'One gate. We go in now.' : 'We take them one at a time, starting where it is heaviest.'}`, wait: false });
-  // If the record shows a structural pattern, name it before the descent.
-  const _wi = _witnessInsights(_wc);
-  if (_wi.length) script.push({ text: _wi[0].pattern, wait: false });
+  // If the record shows a structural pattern, name it before the descent —
+  // but never the same pattern twice in a week; a companion does not repeat itself.
+  const _wiAll = _witnessInsights(_wc);
+  const _seenIns = _store('chakra_oracle_seen', {});
+  const _freshIns = _wiAll.filter(w => !_seenIns[w.key] || (Date.now() - _seenIns[w.key]) > 7 * 86400000);
+  const _wi = _freshIns.length ? _freshIns : _wiAll;
+  if (_wi.length) {
+    script.push({ text: _wi[0].pattern, wait: false });
+    _seenIns[_wi[0].key] = Date.now();
+    _put('chakra_oracle_seen', _seenIns);
+  }
 
   wounded.forEach((x) => {
     const ch = x.c, key = x.key, arc = ARC[key];
@@ -6530,6 +6561,7 @@ function appendOracleMsg(role, text, extraClass) {
   // Rolling memory for the API brain.
   _oracleConvo.push({ role: role === 'user' ? 'user' : 'assistant', text: String(text).slice(0, 2000) });
   while (_oracleConvo.length > 20) _oracleConvo.shift();
+  try { Store.set('chakra_oracle_convo', { t: Date.now(), msgs: _oracleConvo }); } catch (e) {}
 }
 
 function appendOracleHtml(html) {
