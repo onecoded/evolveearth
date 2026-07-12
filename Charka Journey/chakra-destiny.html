@@ -2803,8 +2803,8 @@ function renderDxHome() {
     </div>
     <div class="summary-card" style="text-align:left;border-color:#6622cc66">
       <div style="font-size:.7em;letter-spacing:3px;color:#aa66ff;text-transform:uppercase">🌙 Dream Journal — the night's diagnostics</div>
-      <div style="font-size:.78em;color:#9988bb;margin-top:6px;font-style:italic">Vata dreams fly and flee; Pitta dreams burn and compete; Kapha dreams float in water and nostalgia. Private — never leaves this device.</div>
-      <textarea id="dream-entry" rows="2" placeholder="Last night I dreamed…" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 13px;color:#e8e0f0;font-family:inherit;width:100%;margin-top:8px;outline:none;resize:vertical"></textarea>
+      <div style="font-size:.78em;color:#9988bb;margin-top:6px;font-style:italic">Like the sweetest child, unattached — remember your dreams. Vata dreams fly and flee; Pitta dreams burn and compete; Kapha dreams float in water and nostalgia. Private — never leaves this device.</div>
+      <textarea id="dream-entry" rows="2" placeholder="Last night I dreamed… and today I wish to dream into reality…" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 13px;color:#e8e0f0;font-family:inherit;width:100%;margin-top:8px;outline:none;resize:vertical"></textarea>
       <button class="btn-sm" style="margin-top:8px" onclick="dreamLog()">Record the dream (+3 🪙)</button>
       ${dreams.length ? `<div style="font-size:.74em;color:#c0b4d8;margin-top:10px">${dreams.length} dream${dreams.length > 1 ? 's' : ''} held. Pattern so far: <strong style="color:#aa66ff">${_dreamPattern()}</strong></div>
         ${(() => { const sym = _dreamSymbols(); return sym.length ? `<div style="font-size:.72em;color:#aa66ff;margin-top:6px">🌀 The night keeps returning to: ${sym.map(([w, n]) => `<b>${escHtml(w)}</b> ×${n}`).join(' · ')}</div>` : ''; })()}
@@ -3054,7 +3054,7 @@ function buildMilestones() {
 }
 
 // ── #30 VAULT — sovereign, portable healing record ──
-const VAULT_KEYS = ['chakra_sessions','chakra_progress','chakra_dailycheck','chakra_prana','chakra_heal_progress','chakra_entangle','chakra_stories','chakra_story_access','chakra_legacy','chakra_dao','chakra_pool','chakra_rites','chakra_diagnostics','chakra_agni','chakra_dreams','chakra_lunar','chakra_convergence','chakra_milestones','chakra_ref','chakra_question_db_custom','chakra_marketplace_custom','chakra_resources_custom','chakra_admin_cfg','chakra_skills','chakra_lineage','chakra_mentor','chakra_oracle_history','chakra_archive_subs','chakra_clock','chakra_oracle_convo','chakra_oracle_seen','chakra_medicine_log','chakra_birth','chakra_protocol','chakra_witness','chakra_teacher','chakra_teacher_self'];
+const VAULT_KEYS = ['chakra_sessions','chakra_progress','chakra_dailycheck','chakra_prana','chakra_heal_progress','chakra_entangle','chakra_stories','chakra_story_access','chakra_legacy','chakra_dao','chakra_pool','chakra_rites','chakra_diagnostics','chakra_agni','chakra_dreams','chakra_lunar','chakra_convergence','chakra_milestones','chakra_ref','chakra_question_db_custom','chakra_marketplace_custom','chakra_resources_custom','chakra_admin_cfg','chakra_skills','chakra_lineage','chakra_mentor','chakra_oracle_history','chakra_archive_subs','chakra_clock','chakra_oracle_convo','chakra_oracle_seen','chakra_medicine_log','chakra_birth','chakra_protocol','chakra_witness','chakra_teacher','chakra_teacher_self','chakra_rooster'];
 // ── DEMO MODE — one click to a fully-lived reading (for showing the product,
 // no 35 questions required). Seeds a rich 68-day journey, then opens results.
 function enterDemoMode() {
@@ -6484,6 +6484,9 @@ const _SOMATIC_DEFAULTS = [
   'What would you have to stop doing if you finally felt safe? Do not answer tonight. Let the body answer during the week.',
   'Where in your body does the "yes, but" live? Put a hand there and say nothing.',
   'If the youngest part of you watched how you spent today — what would it stop expecting from you?',
+  'Let go, let love flow. Let go, let God flow through you now. Where in the body is the letting-go stuck?',
+  'Only love is taking us higher. What are you holding that love is asking you to put down first?',
+  'What do you wish to dream into reality this day? Say it out loud — proudly — and notice which part of the body believes you.',
 ];
 
 function buildWitnessScript(name) {
@@ -7341,6 +7344,61 @@ const SPIRIT_CAL = {
   },
 };
 
+// ── THE BOOSTER ROOSTER CALL — the sacred morning sequence, in the founder's
+// own liturgy: wake as the Child, be tended by the Mother, rise as the Father.
+// Checked each dawn; the day is claimed before the world can claim it.
+const ROOSTER_STEPS = [
+  { arch: 'CHILD', e: '🐣', text: 'Rise and shine and remember why you are now awake. Like the sweetest child, unattached — remember your dreams.' },
+  { arch: 'CHILD', e: '🌙', text: 'Write down how you felt and everything you experienced in the night — and what you wish to dream into reality this day.' },
+  { arch: 'MOTHER', e: '🌷', text: 'Send love to every part of the heart as you activate every part of the body with gentle stretching. Feel yourself healing in this open space of sacred breath.' },
+  { arch: 'MOTHER', e: '💓', text: 'Move every part of the body, one at a time, to the beat of your heart — awaken heart and soul through your dance of life.' },
+  { arch: 'MOTHER', e: '🫒', text: 'Oil massage (abhyanga): lightly at first — head, fingers, toes — working slowly toward the heart, visualizing the vision in optimism.' },
+  { arch: 'MOTHER', e: '🎶', text: 'Sing in the shower. Harmonize heart, thoughts, and words — find your authentic sound, your voice power.' },
+  { arch: 'FATHER', e: '🧘', text: 'Asana — move through your poses with full-body awareness.' },
+  { arch: 'FATHER', e: '🌬', text: 'Pranayama — then dive into the inner silence. Let the mind relax into transcendence.' },
+  { arch: 'FATHER', e: '📖', text: 'Read what reminds you who you are and why you came here: to serve, to learn, to use, to teach.' },
+  { arch: 'FATHER', e: '☀️', text: 'GIVE THANKS. Speak out proudly what you will accomplish this day — absolute attention on the soul\'s goals, your life\'s dharma. Then bounce up full of vigor: "I will fly today, and dance and sing, and bring a bounce of joy to my day. I will dive deeper into my dharma than ever."' },
+];
+function _roosterState() {
+  const R = _store('chakra_rooster', { date: '', done: {}, days: 0 });
+  if (R.date !== _dayStr(0)) { R.date = _dayStr(0); R.done = {}; }
+  return R;
+}
+function roosterToggle(i) {
+  const R = _roosterState();
+  if (R.done[i]) delete R.done[i];
+  else {
+    R.done[i] = true;
+    pranaAward(1, 'the rooster crows');
+    if (ROOSTER_STEPS.every((_, j) => R.done[j])) { R.days = (R.days || 0) + 1; pranaAward(15, 'the day is claimed — dharma before distraction'); playCompletionFanfare(); }
+  }
+  _put('chakra_rooster', R);
+  buildClockTab();
+}
+function _roosterCard() {
+  const R = _roosterState();
+  _put('chakra_rooster', R); // persist the daily reset
+  const doneN = Object.keys(R.done).length;
+  const hour = new Date().getHours();
+  const morning = hour >= 4 && hour < 12;
+  let lastArch = '';
+  const steps = ROOSTER_STEPS.map((st, i) => {
+    const hdr = st.arch !== lastArch ? `<div style="font-size:.62em;letter-spacing:3px;color:${st.arch === 'CHILD' ? '#88ccff' : st.arch === 'MOTHER' ? '#ff9ec4' : '#ffd97a'};margin:${i ? '12px' : '2px'} 0 4px">${st.arch === 'CHILD' ? '🐣 LIKE THE SWEETEST CHILD' : st.arch === 'MOTHER' ? '🌷 LIKE THE SWEETEST NURTURING MOTHER' : '☀️ LIKE THE FATHER'}</div>` : '';
+    lastArch = st.arch;
+    const on = !!R.done[i];
+    return `${hdr}<div onclick="roosterToggle(${i})" style="display:flex;gap:10px;align-items:flex-start;padding:7px 9px;border-radius:10px;cursor:pointer;background:${on ? 'rgba(136,255,204,.07)' : 'transparent'};transition:background .2s">
+      <span style="width:20px;height:20px;flex:none;border-radius:7px;border:1px solid ${on ? '#88ffcc' : 'rgba(255,255,255,.25)'};color:#88ffcc;font-size:13px;text-align:center;line-height:19px;background:${on ? 'rgba(136,255,204,.18)' : 'rgba(255,255,255,.03)'}">${on ? '✓' : ''}</span>
+      <span style="font-size:.82em;line-height:1.55;color:${on ? 'rgba(255,255,255,.5)' : 'rgba(255,255,255,.82)'}">${st.e} ${st.text}</span>
+    </div>`;
+  }).join('');
+  return `
+        <div style="width:100%;background:rgba(0,0,0,.32);border:1px solid ${doneN === ROOSTER_STEPS.length ? '#88ffcc66' : 'rgba(255,180,80,.35)'};border-radius:16px;padding:16px 18px">
+          <div style="font-size:.72em;letter-spacing:3px;color:#ffb450;margin-bottom:4px">🐓 THE BOOSTER ROOSTER CALL · ${doneN}/${ROOSTER_STEPS.length}${R.days ? ` · ${R.days} morning${R.days > 1 ? 's' : ''} claimed` : ''}</div>
+          <div style="font-size:.78em;color:rgba(255,255,255,.55);font-style:italic;margin-bottom:8px">${doneN === ROOSTER_STEPS.length ? 'The day is claimed. Only love is taking us higher.' : morning ? 'The sacred morning sequence — claim the day before the world can claim it.' : 'The rooster returns with the dawn — or begin now; rebirth keeps no office hours.'}</div>
+          ${steps}
+        </div>`;
+}
+
 function _clockWatchAt(h) {
   return SPIRIT_WATCHES.find(w => (w.from < w.to) ? (h >= w.from && h < w.to) : (h >= w.from || h < w.to));
 }
@@ -7381,6 +7439,7 @@ function _spiritClockCorpus() {
       practiceLean: lean ? `${lean.watch.dosha} ${lean.watch.from}:00–${lean.watch.to}:00 (${lean.pct}%)` : null,
       leanDosha: lean ? lean.watch.dosha : null,
       nightPractice: night,
+      roosterMornings: (_store('chakra_rooster', {}).days) || 0,
     };
   } catch (e) { return null; }
 }
@@ -7463,6 +7522,8 @@ function buildClockTab() {
           <div style="margin-top:10px;color:#ffd97a;font-size:.92em;line-height:1.6">${s.brahma ? 'The hour of the seers — the veil is thinnest right now. If you are reading this, you are already awake: sit before the light comes.' : s.watch.from === 22 ? 'The lamp is still lit. This watch belongs to repair, and repair only happens in sleep — the most advanced practice available to you right now is to put this down and close your eyes.' : counsel}</div>
           ${s.amplified ? `<div style="margin-top:8px;font-size:.78em;color:${s.watch.c}">⚠ ${dom} hours amplify your ${dom} — this is when your imbalance speaks loudest.</div>` : ''}
         </div>
+
+        ${_roosterCard()}
 
         ${cal ? `
         <div style="width:100%;background:rgba(0,0,0,.3);border:1px solid var(--glass-brd);border-radius:16px;padding:18px 20px">
