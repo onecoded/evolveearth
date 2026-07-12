@@ -413,6 +413,8 @@ body{cursor:crosshair}
 #oracle-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;align-items:flex-end}
 #oracle-user-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 13px;color:#e8e0f0;font-family:inherit;font-size:.85em;outline:none;resize:none;max-height:100px;transition:border-color .2s}
 #oracle-user-input:focus{border-color:rgba(140,80,255,.45)}
+#oracle-mic-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:0 13px;color:#cbb8ee;cursor:pointer;font-size:1.05em;transition:all .2s}
+#oracle-mic-btn.listening{background:rgba(224,105,158,.25);border-color:#e0699e;color:#ff9ec4;animation:entrancePulse 1.2s infinite}
 #oracle-send-btn{background:linear-gradient(135deg,#5500bb,#bb00ff);color:#fff;border:none;border-radius:10px;padding:10px 16px;cursor:pointer;font-family:inherit;font-size:.82em;flex-shrink:0;transition:all .2s}
 #oracle-send-btn:hover{filter:brightness(1.15)}
 .oracle-key-change{background:transparent;border:none;color:#9977bb;cursor:pointer;font-family:inherit;font-size:.72em;letter-spacing:.5px;padding:4px;text-decoration:underline;margin-top:4px;display:block;text-align:center}
@@ -812,6 +814,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
       <div id="oracle-messages"></div>
       <div id="oracle-input-row">
         <textarea id="oracle-user-input" placeholder="Speak your truth to the Oracle..." rows="2"></textarea>
+        <button id="oracle-mic-btn" title="Speak aloud — the Oracle hears" style="display:none">🎙</button>
         <button id="oracle-send-btn">→</button>
       </div>
     </div>
@@ -851,6 +854,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
     <div class="rtab-bar">
       <button class="rtab active" data-tab="oracle" onclick="switchResultsTab('oracle')">🔮 Oracle</button>
       <button class="rtab" data-tab="clock" onclick="switchResultsTab('clock')">🕰️ Spirit Clock</button>
+      <button class="rtab" data-tab="protocol" onclick="switchResultsTab('protocol')">📜 Protocol</button>
       <button class="rtab" data-tab="diet" onclick="switchResultsTab('diet')">🌿 Diet</button>
       <button class="rtab" data-tab="colors" onclick="switchResultsTab('colors')">💎 Colors</button>
       <button class="rtab" data-tab="retreats" onclick="switchResultsTab('retreats')">🏔️ Retreats</button>
@@ -863,6 +867,11 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
   <div class="rtab-panel active" data-tab="oracle" id="tab-oracle" style="flex-direction:column;align-items:center">
   <div class="results-title">YOUR CHAKRA READING</div>
   <div class="results-sub">Seven centers. Seven truths. One magnificent, messy, whole you.</div>
+
+  <!-- SOUL CAST — the reading as a shareable card -->
+  <div style="text-align:center;margin-bottom:14px">
+    <button class="btn-sm" style="border-color:#b78aff66;color:#cbb8ee" onclick="soulCast()">🃏 Cast my Soul Card — share your signature</button>
+  </div>
 
   <!-- Return link (only shown for returning users / after save) -->
   <div id="return-link-panel" style="display:none;text-align:center;margin-bottom:16px">
@@ -945,6 +954,8 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
 
   <!-- DIET & LIFESTYLE TAB -->
   <div class="rtab-panel" data-tab="clock" id="tab-clock"></div>
+
+  <div class="rtab-panel" data-tab="protocol" id="tab-protocol"></div>
 
   <div class="rtab-panel" data-tab="diet" id="tab-diet"></div>
 
@@ -1909,6 +1920,7 @@ const MKT_TYPE_META = {
   retreat:      { e:'⛺', c:'#ff6b35', label:'Retreat' },
   book:         { e:'📖', c:'#aa88cc', label:'Book' },
   therapy:      { e:'🫂', c:'#e0699e', label:'Therapy' },
+  astrologer:   { e:'✨', c:'#b78aff', label:'Astrologer' },
 };
 const MARKETPLACE_SEED = [
   { chakra:'root',   dosha:'Any',   type:'practitioner', title:'Somatic Experiencing Practitioner Directory', desc:'Body-based trauma resolution for deep safety wounds.', url:'https://directory.traumahealing.org', price:'' },
@@ -1926,6 +1938,17 @@ const MARKETPLACE_SEED = [
   { chakra:'crown',  dosha:'Any',   type:'retreat',      title:'Vipassana 10-day Silent Retreat', desc:'Donation-based deep silence — the crown\'s medicine.', url:'https://www.dhamma.org', price:'donation' },
   { chakra:'any',    dosha:'Any',   type:'therapy',      title:'The ManKind Project (MKP) — men\'s work', desc:'Brotherhood + shadow work for childhood wounds men carry alone.', url:'https://mankindproject.org', price:'' },
   { chakra:'any',    dosha:'Any',   type:'practitioner', title:'Find a Therapist — Psychology Today', desc:'Licensed therapists by specialty, insurance, and location.', url:'https://www.psychologytoday.com', price:'' },
+  // ── THE HEALER'S BAZAAR — hands, not more insight ──
+  { chakra:'root',   dosha:'Any',   type:'practitioner', title:'Ayurvedic Practitioner Consult (NAMA directory)', desc:'A full constitutional intake with a certified Ayurvedic practitioner — your dosha reading, professionally deepened.', url:'https://www.ayurvedanama.org', price:'from $95' },
+  { chakra:'heart',  dosha:'Vata',  type:'practitioner', title:'Breathwork Facilitator — 1:1 session', desc:'Conscious connected breath for the anxious heart. Bring your reading; work the gate directly.', url:'', price:'from $60' },
+  { chakra:'sacral', dosha:'Any',   type:'practitioner', title:'Somatic Movement Therapist', desc:'The sacral gate opens through the body in motion, not through understanding.', url:'', price:'' },
+  { chakra:'solar',  dosha:'Kapha', type:'practitioner', title:'Kundalini / Core-Fire Yoga Teacher', desc:'Heat and will for a banked solar fire — Kapha\'s exact medicine.', url:'', price:'' },
+  { chakra:'crown',  dosha:'Any',   type:'practitioner', title:'Meditation Teacher — private instruction', desc:'A living teacher for the gate no book can open.', url:'', price:'' },
+  // ── THE STAR COUNCIL — jyotish, the sister science of your dosha reading ──
+  { chakra:'any',    dosha:'Any',   type:'astrologer',   title:'Vedic Birth Chart Reading (jyotish)', desc:'Your full janma kundali — graha positions, dashas, and the karmic weather of this life. Bring your Chart Brief.', url:'', price:'from $120' },
+  { chakra:'thirdeye',dosha:'Any',  type:'astrologer',   title:'Nakshatra Deep Reading', desc:'The moon mansion you were born under — your mind\'s native terrain, and why your dreams lean the way they do.', url:'', price:'from $75' },
+  { chakra:'any',    dosha:'Any',   type:'astrologer',   title:'Muhurta — auspicious timing consult', desc:'The Spirit Clock, raised to the level of your whole life: when to launch, marry, move, begin.', url:'', price:'' },
+  { chakra:'heart',  dosha:'Any',   type:'astrologer',   title:'Synastry / Relationship Chart Reading', desc:'Two charts, one bond — for entangled souls who want to see the weather between them.', url:'', price:'' },
 ];
 function getMarketplace() {
   let custom = [];
@@ -1942,7 +1965,70 @@ function _ytId(u) {
   return m ? m[1] : null;
 }
 
-let _mktChakra = 'any', _mktDosha = 'Any';
+// ── THE APOTHECARY LOOP — medicine that reports back. Every remedy tried
+// gets asked "did it move?"; honest answers rank remedies for souls of the
+// same constitution. Local now; the subnet aggregates this at launch —
+// products competing on measured healing, not ad spend.
+function _medLog() { return _store('chakra_medicine_log', []); }
+function medTry(item) {
+  if (!item) return;
+  const L = _medLog();
+  if (!L.find(m => m.title === item.title)) {
+    L.push({ title: item.title, chakra: item.chakra, dosha: item.dosha, t: Date.now(), moved: null });
+    _put('chakra_medicine_log', L);
+    pranaAward(2, 'medicine begun — the loop opens');
+  }
+  buildMarketplaceTab();
+}
+function medReport(title, moved) {
+  const L = _medLog();
+  const m = L.find(x => x.title === title);
+  if (m && m.moved === null) {
+    m.moved = !!moved; m.reportedAt = Date.now();
+    _put('chakra_medicine_log', L);
+    pranaAward(4, moved ? 'medicine moved you — the loop closes' : 'honest report — your no protects the next soul');
+  }
+  buildMarketplaceTab();
+}
+function _medMovedCounts() {
+  const c = {};
+  _medLog().forEach(m => { if (m.moved === true) c[m.title] = (c[m.title] || 0) + 1; });
+  return c;
+}
+
+// ── THE STAR COUNCIL's CHART BRIEF — the member's longitudinal record,
+// sealed into one block an astrologer can actually work from.
+function _chartBrief() {
+  const b = _store('chakra_birth', {});
+  const dd = _dominantDoshaPct();
+  const wc = _witnessCorpus();
+  const dreamLean = wc.dreams ? Object.entries(wc.dreamLeans).sort((a, b) => b[1] - a[1])[0][0] : null;
+  return `CHART BRIEF · EvolveEarth — The Seven Sacred Gates
+Born: ${b.date || '(add birth date)'} at ${b.time || '(time unknown)'} — ${b.place || '(add birth place)'}
+Constitution: Vata ${dd.pct.Vata}% · Pitta ${dd.pct.Pitta}% · Kapha ${dd.pct.Kapha}% (dominant ${dd.dom})
+Wounded gates: ${wc.wounded.map(x => x.ch.name).join(', ') || 'none — all seven stand open'}
+Not yet touched: ${wc.woundedUntouched.map(x => x.ch.name).join(', ') || 'none'}
+Practice record: ${wc.practiceDays} days · current streak ${wc.streak} · energy flow ${wc.flowNow}%${wc.agni ? '\nDigestive fire: ' + wc.agni.name : ''}${dreamLean ? '\nDream record: ' + wc.dreams + ' dreams, leaning ' + dreamLean : ''}
+Shared with consent for a jyotish reading. Begin at depth — the intake is done.`;
+}
+function saveBirthData() {
+  const b = {
+    date: (document.getElementById('birth-date') || {}).value || '',
+    time: (document.getElementById('birth-time') || {}).value || '',
+    place: ((document.getElementById('birth-place') || {}).value || '').slice(0, 80),
+  };
+  _put('chakra_birth', b);
+  pranaAward(3, 'birth moment recorded — the sky can now be read');
+  buildMarketplaceTab();
+}
+function copyChartBrief(btn) {
+  const t = _chartBrief();
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(
+    () => { btn.textContent = '✓ copied — paste it to your astrologer'; },
+    () => { window.prompt('Copy your Chart Brief:', t); });
+}
+
+let _mktChakra = 'any', _mktDosha = 'Any', _mktType = 'any';
 function buildMarketplaceTab() {
   const el = document.getElementById('tab-products');
   if (!el) return;
@@ -1953,11 +2039,15 @@ function buildMarketplaceTab() {
   }
   const chakraOpts = [{ id:'any', name:'All chakras' }].concat(CHAKRAS.map(c => ({ id:c.id, name:c.name })));
   const doshaOpts = ['Any','Vata','Pitta','Kapha'];
+  const _movedC = _medMovedCounts();
   const items = getMarketplace().filter(m =>
     (_mktChakra === 'any' || m.chakra === 'any' || m.chakra === _mktChakra) &&
-    (_mktDosha === 'Any' || m.dosha === 'Any' || m.dosha === _mktDosha));
+    (_mktDosha === 'Any' || m.dosha === 'Any' || m.dosha === _mktDosha) &&
+    (_mktType === 'any' || m.type === _mktType))
+    .sort((a, b) => (_movedC[b.title] || 0) - (_movedC[a.title] || 0)); // proven medicine rises
 
-  const cards = items.map(m => {
+  window._mktItemsCache = items;
+  const cards = items.map((m, _mi) => {
     const t = MKT_TYPE_META[m.type] || MKT_TYPE_META.practitioner;
     const ch = CHAKRAS.find(c => c.id === m.chakra);
     const link = m.url
@@ -1975,6 +2065,16 @@ function buildMarketplaceTab() {
         <div class="tab-item-title">${escHtml(m.title)}</div>
         <div class="tab-item-desc">${escHtml(m.desc || '')}</div>
         ${link}
+        ${(() => {
+          const rec = _medLog().find(x => x.title === m.title);
+          const n = _movedC[m.title] || 0;
+          const badge = n ? `<span style="font-size:.66em;color:#88ffcc">⚡ moved ${n} soul${n > 1 ? 's' : ''} like you</span>` : '';
+          if (!rec) return `<div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn-sm" style="font-size:.62em;padding:4px 10px" onclick="medTry(_mktItemsCache[${_mi}])">🧪 I'm trying this</button>${badge}</div>`;
+          if (rec.moved === null) return `<div style="margin-top:6px;font-size:.72em;color:#c9a84c">You are working this medicine — did it move?
+            <button class="btn-sm" style="font-size:.62em;padding:3px 9px" onclick="medReport(_mktItemsCache[${_mi}].title,true)">✓ it moved</button>
+            <button class="btn-sm" style="font-size:.62em;padding:3px 9px;opacity:.75" onclick="medReport(_mktItemsCache[${_mi}].title,false)">✗ not yet</button></div>`;
+          return `<div style="margin-top:6px;font-size:.7em;color:${rec.moved ? '#88ffcc' : '#9988bb'}">${rec.moved ? '⚡ this moved you — witnessed' : 'reported honestly — your no protects the next soul'} ${badge}</div>`;
+        })()}
       </div>
     </div>`;
   }).join('');
@@ -2016,7 +2116,39 @@ function buildMarketplaceTab() {
       <select onchange="_mktDosha=this.value;buildMarketplaceTab()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;color:#e0d8f0;font-family:inherit;font-size:.8em">
         ${doshaOpts.map(d => `<option value="${d}"${d === _mktDosha ? ' selected' : ''}>${d === 'Any' ? 'All doshas' : d}</option>`).join('')}
       </select>
+      <select onchange="_mktType=this.value;buildMarketplaceTab()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;color:#e0d8f0;font-family:inherit;font-size:.8em">
+        <option value="any"${_mktType === 'any' ? ' selected' : ''}>All offerings</option>
+        ${Object.entries(MKT_TYPE_META).map(([k, t]) => `<option value="${k}"${k === _mktType ? ' selected' : ''}>${t.e} ${t.label}s</option>`).join('')}
+      </select>
     </div>
+    ${(() => {
+      // THE HEALER'S BAZAAR hero — the Oracle refers, by gate.
+      if (_mktType === 'practitioner') {
+        const w = CHAKRAS.map((c, i) => ({ c, i })).find(x => mainAnswers[x.i] && _lcState(x.i) !== 'open');
+        return w ? `<div class="summary-card" style="text-align:left;border-color:#2ec4b655;margin-bottom:14px">
+          <div style="font-size:.7em;letter-spacing:3px;color:#2ec4b6;text-transform:uppercase">🔮 The Oracle refers</div>
+          <div style="font-size:.85em;color:#e8e0f8;margin-top:6px">Your <b style="color:${w.c.color || '#ffd97a'}">${w.c.name}</b> work needs hands now, not more insight. An app can witness; it cannot hold. Choose one practitioner below and bring your reading with you.</div>
+        </div>` : '';
+      }
+      // THE STAR COUNCIL hero — birth moment + Chart Brief.
+      if (_mktType === 'astrologer') {
+        const b = _store('chakra_birth', {});
+        const inp = 'background:rgba(255,255,255,.06);border:1px solid rgba(183,138,255,.3);border-radius:10px;padding:8px 12px;color:#e0d8f0;font-family:inherit;font-size:.8em';
+        return `<div class="summary-card" style="text-align:left;border-color:#b78aff55;margin-bottom:14px">
+          <div style="font-size:.7em;letter-spacing:3px;color:#b78aff;text-transform:uppercase">✨ The Star Council · Your Chart Brief</div>
+          <div style="font-size:.78em;color:#9988bb;margin-top:6px">Jyotish is the sister science of your dosha reading — same cosmology, read in the sky instead of the body. Record your birth moment once; every astrologer you book receives your constitution, wounded gates, and practice arc. The reading starts at depth instead of small talk.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <input id="birth-date" type="date" value="${escHtml(b.date || '')}" style="${inp}">
+            <input id="birth-time" type="time" value="${escHtml(b.time || '')}" style="${inp}">
+            <input id="birth-place" type="text" placeholder="birth place" value="${escHtml(b.place || '')}" style="${inp};min-width:150px">
+            <button class="btn-sm" onclick="saveBirthData()">save</button>
+          </div>
+          ${b.date ? `<pre style="white-space:pre-wrap;background:rgba(0,0,0,.35);border:1px solid rgba(183,138,255,.25);border-radius:10px;padding:12px;font-size:.72em;line-height:1.5;color:#cbb8ee;margin:10px 0 0">${escHtml(_chartBrief())}</pre>
+          <button class="btn-sm" style="margin-top:8px" onclick="copyChartBrief(this)">📋 copy brief for your astrologer</button>` : ''}
+        </div>`;
+      }
+      return '';
+    })()}
     ${cards || '<div style="opacity:.5;font-style:italic;font-size:.85em">Nothing matches this filter yet — the admin can add offerings.</div>'}
     ${resCards ? `<div class="tab-section-title" style="margin-top:22px">📚 RESOURCE LIBRARY</div>${resCards}` : ''}
     <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07)">
@@ -2305,11 +2437,11 @@ function renderSanctum() {
   const tabs = [
     ['bonds', '🔗 Bonds'], ['stories', '📿 Medicine Stories'], ['legacy', '🕯️ Legacy'],
     ['council', '🏛️ Council'], ['pool', '🌊 Pool'], ['rites', '🔥 Rites'],
-    ['skills', '🧰 Skills'], ['lineage', '🌳 Lineage'], ['mentor', '🧭 Mentorship'],
+    ['skills', '🧰 Skills'], ['witness', '👁 Witness'], ['lineage', '🌳 Lineage'], ['mentor', '🧭 Mentorship'],
   ];
   const bar = tabs.map(([k, l]) =>
     `<button onclick="openSanctum('${k}')" style="background:${_sanctumTab === k ? 'rgba(140,80,255,.25)' : 'rgba(255,255,255,.04)'};border:1px solid ${_sanctumTab === k ? '#aa66ff88' : 'rgba(255,255,255,.1)'};color:${_sanctumTab === k ? '#e0d0ff' : '#9988bb'};padding:8px 13px;border-radius:20px;cursor:pointer;font-family:inherit;font-size:.72em;letter-spacing:1px">${l}</button>`).join('');
-  const render = { bonds: _scBonds, stories: _scStories, legacy: _scLegacy, council: _scCouncil, pool: _scPool, rites: _scRites, skills: _scSkills, lineage: _scLineage, mentor: _scMentor }[_sanctumTab];
+  const render = { bonds: _scBonds, stories: _scStories, legacy: _scLegacy, council: _scCouncil, pool: _scPool, rites: _scRites, skills: _scSkills, witness: _scWitness, lineage: _scLineage, mentor: _scMentor }[_sanctumTab];
   document.getElementById('sanctum-body').innerHTML = `
     <div style="text-align:center;margin-bottom:14px">
       <div class="rainbow" style="font-size:clamp(1.5em,4.5vw,2.1em)">The Soul Sanctum</div>
@@ -2675,7 +2807,9 @@ function renderDxHome() {
       <textarea id="dream-entry" rows="2" placeholder="Last night I dreamed…" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 13px;color:#e8e0f0;font-family:inherit;width:100%;margin-top:8px;outline:none;resize:vertical"></textarea>
       <button class="btn-sm" style="margin-top:8px" onclick="dreamLog()">Record the dream (+3 🪙)</button>
       ${dreams.length ? `<div style="font-size:.74em;color:#c0b4d8;margin-top:10px">${dreams.length} dream${dreams.length > 1 ? 's' : ''} held. Pattern so far: <strong style="color:#aa66ff">${_dreamPattern()}</strong></div>
-        ${dreams.slice(0, 3).map(d => `<div style="font-size:.72em;color:#8a8499;border-left:2px solid #6622cc55;padding-left:8px;margin-top:6px">${d.date} · reads ${d.lean} — "${escHtml(d.text.slice(0, 70))}${d.text.length > 70 ? '…' : ''}"</div>`).join('')}` : ''}
+        ${(() => { const sym = _dreamSymbols(); return sym.length ? `<div style="font-size:.72em;color:#aa66ff;margin-top:6px">🌀 The night keeps returning to: ${sym.map(([w, n]) => `<b>${escHtml(w)}</b> ×${n}`).join(' · ')}</div>` : ''; })()}
+        ${dreams.slice(0, 3).map((d, _di) => `<div style="font-size:.72em;color:#8a8499;border-left:2px solid #6622cc55;padding-left:8px;margin-top:6px">${d.date} · reads ${d.lean} — "${escHtml(d.text.slice(0, 70))}${d.text.length > 70 ? '…' : ''}"
+          <button class="btn-sm" style="font-size:.85em;padding:2px 9px;margin-left:6px" onclick="dreamToOracle(${_di})">🔮 bring to the Oracle</button></div>`).join('')}` : ''}
     </div>`;
 }
 
@@ -2771,6 +2905,19 @@ function _dreamPattern() {
   D.forEach(d => c[d.lean]++);
   const top = Object.entries(c).sort((a, b) => b[1] - a[1])[0];
   return `${top[0]} themes (${top[1]} of ${D.length})`;
+}
+// THE DREAM TEMPLE — the night keeps returning to the same rooms. Count them.
+function _dreamSymbols() {
+  const D = _store('chakra_dreams', []);
+  if (D.length < 2) return [];
+  const stop = new Set(['dreamed', 'dream', 'dreams', 'about', 'there', 'their', 'which', 'where', 'while', 'with', 'that', 'this', 'were', 'from', 'have', 'they', 'them', 'then', 'than', 'when', 'into', 'over', 'again', 'being', 'because', 'something', 'someone', 'could', 'would', 'kept', 'like', 'just', 'very', 'night', 'last']);
+  const c = {};
+  D.forEach(d => (String(d.text).toLowerCase().match(/[a-z]{4,}/g) || []).forEach(w => { if (!stop.has(w)) c[w] = (c[w] || 0) + 1; }));
+  return Object.entries(c).filter(x => x[1] >= 2).sort((a, b) => b[1] - a[1]).slice(0, 5);
+}
+function dreamToOracle(i) {
+  const d = _store('chakra_dreams', [])[i];
+  if (d) openOraclePanel({ dream: d });
 }
 
 // ── #27/#29/#31 RHYTHMS — moon kits, convergence, radio ──
@@ -2907,7 +3054,7 @@ function buildMilestones() {
 }
 
 // ── #30 VAULT — sovereign, portable healing record ──
-const VAULT_KEYS = ['chakra_sessions','chakra_progress','chakra_dailycheck','chakra_prana','chakra_heal_progress','chakra_entangle','chakra_stories','chakra_story_access','chakra_legacy','chakra_dao','chakra_pool','chakra_rites','chakra_diagnostics','chakra_agni','chakra_dreams','chakra_lunar','chakra_convergence','chakra_milestones','chakra_ref','chakra_question_db_custom','chakra_marketplace_custom','chakra_resources_custom','chakra_admin_cfg','chakra_skills','chakra_lineage','chakra_mentor','chakra_oracle_history','chakra_archive_subs'];
+const VAULT_KEYS = ['chakra_sessions','chakra_progress','chakra_dailycheck','chakra_prana','chakra_heal_progress','chakra_entangle','chakra_stories','chakra_story_access','chakra_legacy','chakra_dao','chakra_pool','chakra_rites','chakra_diagnostics','chakra_agni','chakra_dreams','chakra_lunar','chakra_convergence','chakra_milestones','chakra_ref','chakra_question_db_custom','chakra_marketplace_custom','chakra_resources_custom','chakra_admin_cfg','chakra_skills','chakra_lineage','chakra_mentor','chakra_oracle_history','chakra_archive_subs','chakra_clock','chakra_oracle_convo','chakra_oracle_seen','chakra_medicine_log','chakra_birth','chakra_protocol','chakra_witness','chakra_teacher','chakra_teacher_self'];
 // ── DEMO MODE — one click to a fully-lived reading (for showing the product,
 // no 35 questions required). Seeds a rich 68-day journey, then opens results.
 function enterDemoMode() {
@@ -3059,6 +3206,69 @@ function _scSkills() {
     <div style="font-size:.7em;color:#44dd88;margin-top:10px;text-align:center">${S.swaps} exchange${S.swaps === 1 ? '' : 's'} completed</div>
   </div>`;
 }
+// ── THE COUNCIL OF TWO — witnessing, exchanged. Twenty minutes: one speaks,
+// one witnesses. No advice, no fixing, no therapy — trained presence, priced
+// in $PRANA. This is the moment the token becomes a currency of attention.
+function _scWitness() {
+  const W = _store('chakra_witness', { offers: [], held: 0, received: 0, earned: 0 });
+  const openers = [
+    'What are you carrying that you have not said out loud to anyone?',
+    'Where does your body brace when the day begins?',
+    'What would you have to feel if you stopped performing for one hour?',
+    'What is finished that you keep reopening?',
+  ];
+  const opener = openers[(W.held + W.received + W.offers.length) % openers.length];
+  const offerCards = W.offers.map((o, i) => `
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(136,255,204,.2);border-radius:12px;padding:10px 12px;margin-top:8px">
+      <div style="flex:1"><div style="font-size:.8em;color:#e0f8ec">${escHtml(o.name)}</div><div style="font-size:.68em;color:#88aa99">${escHtml(o.when || 'availability open')}</div></div>
+      <button class="btn-sm" style="font-size:.62em;padding:4px 10px;border-color:#88ffcc66;color:#88ffcc" onclick="witnessHeld(${i})">session held ✓ (+20 🪙)</button>
+      <button class="btn-sm" style="font-size:.62em;padding:4px 10px;opacity:.6" onclick="const W=_store('chakra_witness',{offers:[]});W.offers.splice(${i},1);_put('chakra_witness',W);renderSanctum()">withdraw</button>
+    </div>`).join('');
+  return `<div class="summary-card" style="text-align:left;border-color:#88ffcc44">
+    <div style="font-size:.7em;letter-spacing:3px;color:#88ffcc;text-transform:uppercase;text-align:center;margin-bottom:8px">👁 The Council of Two — witnessing, exchanged</div>
+    <div style="color:#b0a8c8;font-size:.85em;line-height:1.75;font-style:italic;text-align:center;max-width:480px;margin:0 auto">Twenty minutes. One speaks, one witnesses — no advice, no fixing. Not therapy: presence, priced in $PRANA. Offer your attention and earn; receive attention and pay. The Oracle opens every session.</div>
+    <div style="background:rgba(0,0,0,.3);border:1px solid rgba(136,255,204,.25);border-radius:12px;padding:12px 14px;margin:14px 0;text-align:center">
+      <div style="font-size:.64em;letter-spacing:2px;color:#88ffcc;text-transform:uppercase">the Oracle's opener for your next session</div>
+      <div style="font-size:.86em;color:#e8e0f8;font-style:italic;margin-top:6px">"${opener}"</div>
+    </div>
+    <div style="font-size:.7em;letter-spacing:2px;color:#88ffcc;text-transform:uppercase">offer your presence</div>
+    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+      <input id="witness-name" type="text" placeholder="your name" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 13px;color:#e8e0f0;font-family:inherit;flex:1;min-width:130px;outline:none">
+      <input id="witness-when" type="text" placeholder="when (e.g. evenings)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 13px;color:#e8e0f0;font-family:inherit;flex:1;min-width:130px;outline:none">
+      <button class="btn-sm" onclick="witnessOffer()">👁 offer (+5 🪙)</button>
+    </div>
+    ${offerCards}
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+      <button class="btn-sm" style="border-color:#c9a84c66;color:#c9a84c" onclick="witnessReceive()">🕯 I received a session (−20 🪙)</button>
+    </div>
+    <div style="text-align:center;font-size:.7em;color:#88aa99;margin-top:10px">${W.held} held · ${W.received} received · ${W.earned} 🪙 earned holding space</div>
+  </div>`;
+}
+function witnessOffer() {
+  const name = ((document.getElementById('witness-name') || {}).value || '').trim();
+  if (!name) return;
+  const when = ((document.getElementById('witness-when') || {}).value || '').trim().slice(0, 60);
+  const W = _store('chakra_witness', { offers: [], held: 0, received: 0, earned: 0 });
+  W.offers.push({ name: name.slice(0, 40), when });
+  _put('chakra_witness', W);
+  pranaAward(5, 'presence offered to the council');
+  renderSanctum();
+}
+function witnessHeld(i) {
+  const W = _store('chakra_witness', { offers: [], held: 0, received: 0, earned: 0 });
+  W.held = (W.held || 0) + 1; W.earned = (W.earned || 0) + 20;
+  _put('chakra_witness', W);
+  pranaAward(20, 'you held space — attention earned');
+  renderSanctum();
+}
+function witnessReceive() {
+  if (!pranaSpend(20, 'witness session received — attention purchased')) return;
+  const W = _store('chakra_witness', { offers: [], held: 0, received: 0, earned: 0 });
+  W.received = (W.received || 0) + 1;
+  _put('chakra_witness', W);
+  renderSanctum();
+}
+
 function _scLineage() {
   const guide = localStorage.getItem('chakra_ref');
   const L = _store('chakra_lineage', []);
@@ -3076,7 +3286,32 @@ function _scLineage() {
       <button class="btn-sm" onclick="const n=(document.getElementById('lineage-name').value||'').trim();if(!n)return;const L=_store('chakra_lineage',[]);if(!L.includes(n)){L.push(n);_put('chakra_lineage',L);pranaAward(10,'lineage grows — '+n+' joins your dharma family');}renderSanctum()">🌱 add</button>
     </div>
     <div style="font-size:.68em;color:#665577;margin-top:8px;text-align:center">Share your invite from the Prism panel — arrivals through your link bind on-chain automatically.</div>
+  </div>
+  ${(() => {
+    // THE TEACHER KEY — white-label practitioner mode. Your name over the
+    // door for every soul who enters through your link.
+    const self = _store('chakra_teacher_self', null);
+    const p = _pranaGet();
+    const base = location.origin.startsWith('http') ? location.origin + location.pathname : 'https://onecoded.github.io/evolveearth/chakra-destiny.html';
+    return `<div class="summary-card" style="text-align:left;border-color:#ffd97a44;margin-top:12px">
+    <div style="font-size:.7em;letter-spacing:3px;color:#ffd97a;text-transform:uppercase;text-align:center;margin-bottom:8px">🗝 The Teacher Key — practitioner mode</div>
+    ${self ? `
+      <div style="text-align:center;color:#e8e0f8;font-size:.9em">Active as <b style="color:#ffd97a">${escHtml(self.name)}</b></div>
+      <div style="background:rgba(0,0,0,.35);border:1px solid rgba(255,217,122,.25);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:.72em;color:#cbb8ee;word-break:break-all">${escHtml(base)}?teacher=${encodeURIComponent(self.name)}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-sm" onclick="(navigator.clipboard?navigator.clipboard.writeText('${base}?teacher=${encodeURIComponent(self.name)}'):Promise.reject()).then(()=>{this.textContent='✓ copied'},()=>{})">📋 copy your lineage link</button>
+        <button class="btn-sm" style="opacity:.6" onclick="_put('chakra_teacher_self',null);renderSanctum()">deactivate</button>
+      </div>
+      <div style="text-align:center;font-size:.74em;color:#c9a84c;margin-top:10px">Ledger: ${_store('chakra_lineage', []).length} souls in your lineage · ${p.royalty || 0} 🪙 royalty accrued (10% of every evolution) — pays on-chain at launch</div>
+      <div style="text-align:center;font-size:.66em;color:#665577;margin-top:4px">Every client who opens your link sees your name over the door, walks the Gates under your guidance, and binds you as guide for royalties. Consented aggregate dashboards arrive with the chain.</div>`
+    : `
+      <div style="color:#b0a8c8;font-size:.82em;line-height:1.7;font-style:italic;text-align:center;max-width:460px;margin:0 auto">Are you a coach, healer, or teacher? Activate your key: your clients enter through your link, see your name over the door, and every evolution they make pays your 10% royalty — forever, on-chain.</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="teacher-self-name" type="text" placeholder="Your practitioner name…" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 13px;color:#e8e0f0;font-family:inherit;flex:1;outline:none">
+        <button class="btn-sm" style="border-color:#ffd97a66;color:#ffd97a" onclick="const n=((document.getElementById('teacher-self-name')||{}).value||'').trim();if(!n)return;_put('chakra_teacher_self',{name:n.slice(0,40),since:_dayStr(0)});pranaAward(10,'teacher key forged — your lineage begins');renderSanctum()">🗝 activate</button>
+      </div>`}
   </div>`;
+  })()}`;
 }
 function _scMentor() {
   const M = _store('chakra_mentor', null);
@@ -5582,12 +5817,23 @@ function buildShareCard() {
 // Inbound referral: if someone arrives via ?ref=NAME, acknowledge it warmly.
 window.addEventListener('load', () => {
   try {
-    const ref = new URLSearchParams(window.location.search).get('ref');
+    const _params = new URLSearchParams(window.location.search);
+    const ref = _params.get('ref');
     if (ref) {
       const eb = document.querySelector('#screen-intro .intro-eyebrow');
       if (eb) eb.textContent = `✦ Invited by ${ref} · An Evolve Earth Experience ✦`;
       // Bind the guide for evolution royalties (mirrors on-chain setReferrer).
       if (!localStorage.getItem('chakra_ref')) localStorage.setItem('chakra_ref', ref.slice(0, 40));
+    }
+    // THE TEACHER KEY — arriving through a practitioner's link places you in
+    // their lineage: their name over the door, their royalty share bound.
+    const teacher = _params.get('teacher');
+    if (teacher) {
+      const tn = teacher.slice(0, 40);
+      _put('chakra_teacher', { name: tn, since: _dayStr(0) });
+      if (!localStorage.getItem('chakra_ref')) localStorage.setItem('chakra_ref', tn);
+      const eb2 = document.querySelector('#screen-intro .intro-eyebrow');
+      if (eb2) eb2.textContent = `🗝 In the lineage of ${tn} · An Evolve Earth Experience ✦`;
     }
     applyPrismVitality(); // Tamagotchi: dim or banner if the Prism was neglected
   } catch (e) {}
@@ -6027,6 +6273,31 @@ function initOraclePanel() {
   document.getElementById('oracle-panel-backdrop')?.addEventListener('click', closeOraclePanel);
   document.getElementById('oracle-tts-btn')?.addEventListener('click', toggleOracleTTS);
   document.getElementById('oracle-send-btn')?.addEventListener('click', oracleSendInput);
+  // THE ORACLE HEARS — spoken confession reaches places typed words don't.
+  // On-device browser speech recognition; the button only appears where supported.
+  (() => {
+    const micBtn = document.getElementById('oracle-mic-btn');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!micBtn || !SR) return;
+    micBtn.style.display = '';
+    let rec = null;
+    micBtn.addEventListener('click', () => {
+      if (rec) { try { rec.stop(); } catch (e) {} return; }
+      try {
+        rec = new SR();
+        rec.lang = navigator.language || 'en-US';
+        rec.interimResults = false; rec.maxAlternatives = 1;
+        micBtn.classList.add('listening'); micBtn.textContent = '◉';
+        rec.onresult = (e) => {
+          const t = e.results[0] && e.results[0][0] ? e.results[0][0].transcript : '';
+          const inp = document.getElementById('oracle-user-input');
+          if (inp && t) inp.value = (inp.value ? inp.value.trim() + ' ' : '') + t;
+        };
+        rec.onend = () => { micBtn.classList.remove('listening'); micBtn.textContent = '🎙'; rec = null; };
+        rec.start();
+      } catch (e) { micBtn.classList.remove('listening'); micBtn.textContent = '🎙'; rec = null; }
+    });
+  })();
   document.getElementById('oracle-user-input')?.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); oracleSendInput(); }
   });
@@ -6099,6 +6370,9 @@ function _witnessCorpus() {
     milestones: Object.keys(_store('chakra_milestones', {})).length,
     asks, dom: _dominantDoshaPct().dom, dx,
     clock: _spiritClockCorpus(),
+    medicine: (() => { const L = _medLog(); return { tried: L.length, moved: L.filter(m => m.moved === true).length, notYet: L.filter(m => m.moved === false).length, unreported: L.filter(m => m.moved === null).length }; })(),
+    witness: (() => { const W = _store('chakra_witness', {}); return { held: W.held || 0, received: W.received || 0, offered: (W.offers || []).length }; })(),
+    protocol: (() => { const P = _store('chakra_protocol', null); return P ? { day: Math.min(7, Math.max(1, Math.round((new Date(_dayStr(0)) - new Date(P.created)) / 86400000) + 1)), kept: Object.keys(P.checks || {}).length, of: (P.items || []).length * 7 } : null; })(),
   };
 }
 
@@ -6270,6 +6544,9 @@ function _witnessCorpusCompact() {
       skillOffers: c.skillOffers, skillNeeds: c.skillNeeds, exchanges: c.swaps,
       lineageSouls: c.lineage, milestones: c.milestones,
       spiritClock: c.clock,
+      medicineLoop: c.medicine,
+      witnessCouncil: c.witness,
+      weekProtocol: c.protocol,
       recentAsks: (c.asks || []).slice(0, 5).map(a => a.text),
     };
   } catch (e) { return null; }
@@ -6299,6 +6576,19 @@ function buildOracleScript(seedContext) {
 
   // The Witnessing — the Level-3 ceremony: Mirror, Pattern, Question.
   if (seedContext && seedContext.witness) return buildWitnessScript(name);
+
+  // THE DREAM TEMPLE — a dream brought before the Oracle.
+  if (seedContext && seedContext.dream) {
+    const d = seedContext.dream;
+    const sym = _dreamSymbols();
+    const recur = sym.length ? ` And the temple keeps count: ${sym.slice(0, 3).map(x => `"${x[0]}" has returned ${x[1]} times`).join(', ')}. The night does not repeat itself by accident.` : '';
+    script.push({ text: `${name ? name + ' — b' : 'B'}ring the dream into the temple. You dreamed: "${d.text.slice(0, 160)}${d.text.length > 160 ? '…' : ''}" — the body read it as ${d.lean}.${recur}`, wait: false });
+    script.push({ text: 'Do not interpret yet. First the body: where did you feel it when you woke — and is that place still holding it now?', wait: true });
+    script.push({ text: 'Now try this: every person and thing in the dream is a part of you. The one chasing and the one fleeing, the house and the water — all you. Which part was asking for your attention?', wait: true });
+    script.push({ text: d.lean === 'Vata' ? 'Vata dreams scatter what the day could not settle. Tonight: warm oil on the feet before sleep, and ask the dream to continue — incubation is a practice, not a superstition.' : d.lean === 'Pitta' ? 'Pitta dreams keep fighting what the day left unfinished. Before sleep, put the sword down deliberately: name the fight out loud, once, and let the night hold it instead of re-arguing it.' : 'Kapha dreams float in what has not finished being grieved. Ask it directly tonight: what are you still holding that is already over?', wait: true });
+    script.push({ text: 'The temple stays open. Record what the night answers — the third visit to the same room is always the invitation.', wait: false });
+    return script;
+  }
 
   // Seeded entry (triage / quest): straight into that chakra.
   if (seedContext) {
@@ -6943,6 +7233,70 @@ function stopChord() {
 }
 
 // =============================================
+// SOUL CASTS — the reading rendered as a story-sized share card. No private
+// details: constitution, gate states, archetype. Every card carries the
+// door back in — the member becomes the signal.
+// =============================================
+function soulCast() {
+  try {
+    const dd = _dominantDoshaPct();
+    const answered = Object.keys(mainAnswers || {}).length;
+    let name = '';
+    try { const s = JSON.parse(localStorage.getItem('chakra_sessions') || '[]'); const cur = _sessionId ? s.find(x => x.id === _sessionId) : null; if (cur && cur.name) name = cur.name.split(' ')[0]; } catch (e) {}
+    const cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1920;
+    const x = cv.getContext('2d');
+    // the night
+    const g = x.createLinearGradient(0, 0, 0, 1920);
+    g.addColorStop(0, '#0d0618'); g.addColorStop(.5, '#1c1030'); g.addColorStop(1, '#090412');
+    x.fillStyle = g; x.fillRect(0, 0, 1080, 1920);
+    for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(255,255,255,${.08 + (i % 9) / 34})`; x.beginPath(); x.arc((i * 173.3) % 1080, (i * 397.7) % 1900, (i % 3) * .8 + .5, 0, 7); x.fill(); }
+    x.textAlign = 'center';
+    x.fillStyle = '#c9a84c'; x.font = '40px Georgia';
+    x.fillText('✦  T H E   S E V E N   S A C R E D   G A T E S  ✦', 540, 170);
+    if (name) { x.fillStyle = '#ede6f8'; x.font = 'bold 78px Georgia'; x.fillText(name.toUpperCase(), 540, 300); }
+    // the column of gates — root at the base, crown at the top
+    CHAKRAS.forEach((ch, i) => {
+      const cy = 1150 - i * 108, st = answered ? _lcState(i) : 'open';
+      const open = st === 'open' || st === 'neutral', partial = st === 'partial';
+      x.shadowColor = ch.glow || ch.color; x.shadowBlur = open ? 42 : partial ? 18 : 0;
+      x.beginPath(); x.arc(540, cy, 38, 0, 7);
+      x.fillStyle = open ? ch.color : partial ? ch.color + '88' : 'rgba(30,20,45,.9)';
+      x.fill();
+      x.shadowBlur = 0;
+      x.lineWidth = 3; x.strokeStyle = open ? '#ffffffaa' : ch.color + (partial ? '99' : '44');
+      x.stroke();
+      x.fillStyle = 'rgba(255,255,255,.55)'; x.font = '26px Georgia'; x.textAlign = 'left';
+      x.fillText(ch.sanskrit, 620, cy + 9);
+      x.textAlign = 'center';
+    });
+    // the constitution
+    const bars = [['Vata', '#9d6bff'], ['Pitta', '#ff7a45'], ['Kapha', '#35d0a0']];
+    bars.forEach(([d, c], i) => {
+      const by = 1330 + i * 84, w = Math.max(30, (dd.pct[d] || 0) * 6.2);
+      x.fillStyle = 'rgba(255,255,255,.5)'; x.font = '30px Georgia'; x.textAlign = 'left';
+      x.fillText(d, 160, by + 8);
+      x.fillStyle = 'rgba(255,255,255,.07)'; x.fillRect(300, by - 16, 620, 32);
+      x.fillStyle = c; x.fillRect(300, by - 16, w, 32);
+      x.fillText(`${dd.pct[d] || 0}%`, 940, by + 8);
+      x.textAlign = 'center';
+    });
+    // the archetype
+    const openGates = CHAKRAS.filter((_, i) => mainAnswers[i] != null && _lcState(i) === 'open').length;
+    x.fillStyle = '#ffd97a'; x.font = 'bold 44px Georgia';
+    x.fillText(`${(dd.dom || 'SEEKING').toUpperCase()} SOUL · ${answered ? openGates + ' OF 7 GATES OPEN' : 'THE WALK AWAITS'}`, 540, 1660);
+    // the door back in
+    x.fillStyle = 'rgba(255,255,255,.45)'; x.font = '30px Georgia';
+    const self = _store('chakra_teacher_self', null);
+    x.fillText('walk your own gates', 540, 1770);
+    x.fillStyle = '#b78aff'; x.font = '34px Georgia';
+    x.fillText('onecoded.github.io/evolveearth' + (self ? `?ref=${self.name.slice(0, 20)}` : name ? `?ref=${name.slice(0, 20)}` : ''), 540, 1824);
+    const a = document.createElement('a');
+    a.download = 'soul-card.png'; a.href = cv.toDataURL('image/png'); a.click();
+    pranaAward(3, 'soul card cast — the signal travels');
+  } catch (e) { alert('The card could not be cast: ' + (e && e.message)); }
+}
+
+// =============================================
 // SPIRIT CLOCK — the six Vedic watches of the day, calibrated to YOUR
 // constitution. Time is not neutral: each 4-hour watch is governed by a
 // dosha, and the member's own element amplifies in its matching hours.
@@ -7121,6 +7475,43 @@ function buildClockTab() {
           </div>
         </div>` : ''}
 
+        ${(() => {
+          // THE LIVING ALMANAC — moon + tithi + your constitution, one weather report.
+          const phase = _moonPhase();
+          const tithi = Math.min(30, Math.floor(phase * 30) + 1);
+          const ekadashi = tithi === 11 || tithi === 26;
+          const mI = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'][Math.floor(phase * 8) % 8];
+          const mName = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Last Quarter', 'Waning Crescent'][Math.floor(phase * 8) % 8];
+          const nearFull = phase > .44 && phase < .56, nearNew = phase < .06 || phase > .94;
+          const weather = ekadashi
+            ? 'Ekadashi — the classical lightening day. Eat less, practice more; the mind is easiest to still today.'
+            : nearFull ? `The full moon amplifies everything it touches${dom ? ` — and ${dom} most of all in a ${dom} constitution. Expect your pattern turned up loud; meet it gently` : ''}.`
+            : nearNew ? 'The seed hour of the month — what you plant in the dark roots deepest. Set one intention tonight.'
+            : phase < .5 ? 'The building half of the month — energy waxes with the light. Begin things.' : 'The releasing half of the month — energy wanes with the light. Finish and let go.';
+          const conv = _nextConvergence();
+          const today = new Date().toISOString().slice(0, 10);
+          const isConvToday = conv === today;
+          const daysTo = Math.max(0, Math.round((new Date(conv) - new Date(today)) / 86400000));
+          const seasonName = { '03': 'Equinox of Balance', '06': 'Solstice of Fire', '09': 'Equinox of Harvest', '12': 'Solstice of Stillness' }[conv.slice(5, 7)] || 'Convergence';
+          const seals = _store('chakra_convergence', []);
+          return `
+        <div style="width:100%;background:rgba(0,0,0,.3);border:1px solid rgba(138,160,255,.3);border-radius:16px;padding:16px 20px">
+          <div style="font-size:.72em;letter-spacing:3px;color:#8aa0ff;margin-bottom:6px">${mI} THE LIVING ALMANAC · ${mName.toUpperCase()} · TITHI ${tithi}</div>
+          <div style="color:rgba(255,255,255,.8);font-size:.9em;line-height:1.6">${weather}</div>
+          ${(nearFull || nearNew) ? `<button class="btn-sm" style="margin-top:8px;border-color:#8aa0ff66;color:#8aa0ff" onclick="openRhythms()">🌙 your ${nearNew ? 'intention' : 'release'} ceremony is open — enter Rhythms</button>` : ''}
+        </div>
+        <div style="width:100%;background:rgba(0,0,0,.3);border:1px solid ${isConvToday ? '#ffd97a' : 'rgba(201,168,76,.3)'};border-radius:16px;padding:16px 20px;${isConvToday ? 'box-shadow:0 0 24px rgba(255,217,122,.25);' : ''}">
+          <div style="font-size:.72em;letter-spacing:3px;color:#c9a84c;margin-bottom:6px">✦ RITES OF THE SEASONS · ${seasonName.toUpperCase()}</div>
+          <div style="color:rgba(255,255,255,.8);font-size:.9em;line-height:1.6">${isConvToday
+            ? 'THE WINDOW IS OPEN — today, the whole civilization performs one ceremony at the same planetary moment. The seal mints only today.'
+            : `${daysTo} day${daysTo === 1 ? '' : 's'} until the window opens (${conv}). Four times a year, everyone practices at once — seals mint only inside the 24 hours.`}</div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap">
+            <span style="font-size:.78em;color:${seals.length ? '#ffd97a' : 'rgba(255,255,255,.4)'}">${seals.length ? '✦'.repeat(Math.min(seals.length, 8)) + ` ${seals.length} seasonal seal${seals.length > 1 ? 's' : ''} earned — they mint onto your Prism at launch` : 'no seals yet — your first season awaits'}</span>
+            ${isConvToday ? `<button class="btn-sm" style="border-color:#ffd97a;color:#ffd97a" onclick="openRhythms()">✦ enter the rite</button>` : ''}
+          </div>
+        </div>`;
+        })()}
+
         ${lean ? `
         <div style="width:100%;background:rgba(0,0,0,.3);border:1px solid var(--glass-brd);border-radius:16px;padding:16px 20px">
           <div style="font-size:.72em;letter-spacing:3px;color:#88ffcc;margin-bottom:6px">THE CLOCK HAS BEEN WATCHING</div>
@@ -7152,8 +7543,107 @@ function showResultsNav() {
   switchResultsTab('oracle');
 }
 
+// =============================================
+// THE MEDICINE CABINET — everything prescribed, assembled into one 7-day
+// protocol card: one practice, one food, one medicine per wounded gate,
+// plus the constitution's daily anchor. Checked daily; the bridge between
+// insight and kitchen-table reality.
+// =============================================
+const PROTOCOL_FOODS = {
+  root: 'Root vegetables + warming spices (turmeric, ginger)', sacral: 'Orange foods + healthy fats (sweet potato, avocado)',
+  solar: 'Digestive teas + whole grains (fennel, oats)', heart: 'Leafy greens + green tea',
+  throat: 'Blue/purple fruits + honey-lemon tea', thirdeye: 'Omega-3s + dark berries (walnuts, blackberries)',
+  crown: 'Light meals + pure water — eat consciously',
+};
+function _protocolGenerate() {
+  const wounded = CHAKRAS.map((ch, i) => ({ ch, i })).filter(x => mainAnswers[x.i] != null && _lcState(x.i) !== 'open').slice(0, 3);
+  const dom = Object.keys(mainAnswers || {}).length ? _dominantDoshaPct().dom : null;
+  const items = [];
+  wounded.forEach(x => {
+    const hm = HEAL_MODALITIES[x.ch.id];
+    if (hm && hm.mods[0]) items.push({ e: x.ch.emoji, label: `${x.ch.name}: ${hm.mods[0].n}`, kind: 'practice' });
+    if (PROTOCOL_FOODS[x.ch.id]) items.push({ e: '🍽', label: `${x.ch.name} food: ${PROTOCOL_FOODS[x.ch.id]}`, kind: 'food' });
+    const med = getMarketplace().find(m => m.chakra === x.ch.id);
+    if (med) items.push({ e: '🧪', label: `Medicine: ${med.title}`, kind: 'medicine' });
+  });
+  const anchors = [];
+  if (dom && SPIRIT_CAL[dom]) {
+    const pw = SPIRIT_WATCHES.find(w => w.from === SPIRIT_CAL[dom].power[0]);
+    anchors.push({ e: '🕰', label: `Practice in your power window (${pw.dosha} ${pw.from}:00–${pw.to}:00)`, kind: 'anchor' });
+  }
+  const agni = _agniClassify();
+  if (agni) anchors.push({ e: '🔥', label: `Fire: ${agni.advice}`, kind: 'anchor' });
+  const all = items.slice(0, 8 - anchors.length).concat(anchors); // anchors always survive
+  if (!all.length) return null;
+  return { created: _dayStr(0), items: all, checks: {} };
+}
+function protocolNew() { const p = _protocolGenerate(); if (p) { _put('chakra_protocol', p); pranaAward(5, 'a 7-day protocol sworn — medicine has a schedule now'); } buildProtocolTab(); }
+function protocolToggle(day, idx) {
+  const p = _store('chakra_protocol', null); if (!p) return;
+  const k = 'd' + day + '_i' + idx;
+  if (p.checks[k]) delete p.checks[k];
+  else {
+    p.checks[k] = true;
+    pranaAward(1, 'protocol kept');
+    if (p.items.every((_, i) => p.checks['d' + day + '_i' + i])) pranaAward(5, 'a full protocol day — every medicine taken');
+  }
+  _put('chakra_protocol', p); buildProtocolTab();
+}
+function protocolCopy(btn) {
+  const p = _store('chakra_protocol', null); if (!p) return;
+  const t = 'MY 7-DAY PROTOCOL · The Seven Sacred Gates\nBegun ' + p.created + '\n\n' + p.items.map(i => '□ ' + i.label).join('\n') + '\n\nOne week. Depth beats breadth.';
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => { btn.textContent = '✓ copied'; }, () => window.prompt('Copy:', t));
+}
+function buildProtocolTab() {
+  const el = document.getElementById('tab-protocol');
+  if (!el) return;
+  try {
+    const p = _store('chakra_protocol', null);
+    if (!p) {
+      const can = CHAKRAS.some((_, i) => mainAnswers[i] != null && _lcState(i) !== 'open') || Object.keys(mainAnswers || {}).length;
+      el.innerHTML = `
+        <div class="results-title">THE MEDICINE CABINET</div>
+        <div class="results-sub">Insight is not medicine until it has a schedule. Assemble your week.</div>
+        <div style="text-align:center;padding:20px">
+          <div style="color:rgba(255,255,255,.7);font-size:.9em;max-width:480px;margin:0 auto 16px;line-height:1.6">One practice, one food, and one medicine per wounded gate — plus your constitution's daily anchors — assembled from your reading into a single 7-day protocol you check off each day.</div>
+          ${can ? '<button class="jp-leaf-btn" style="max-width:340px;margin:0 auto" onclick="protocolNew()">📜 Assemble my 7-day protocol</button>' : '<div style="color:rgba(255,255,255,.45);font-style:italic;font-size:.85em">Walk the Seven Gates first — the cabinet fills itself from your reading.</div>'}
+        </div>`;
+      return;
+    }
+    const dayNum = Math.min(6, Math.max(0, Math.round((new Date(_dayStr(0)) - new Date(p.created)) / 86400000)));
+    const done = Object.keys(p.checks).length, total = p.items.length * 7;
+    const rows = p.items.map((it, idx) => {
+      const cells = Array.from({ length: 7 }, (_, d) => {
+        const k = 'd' + d + '_i' + idx, on = !!p.checks[k];
+        const isToday = d === dayNum, past = d < dayNum;
+        return `<td style="text-align:center;padding:4px">${isToday
+          ? `<button onclick="protocolToggle(${d},${idx})" style="width:26px;height:26px;border-radius:8px;cursor:pointer;background:${on ? 'rgba(136,255,204,.25)' : 'rgba(255,255,255,.05)'};border:1px solid ${on ? '#88ffcc' : 'rgba(255,255,255,.2)'};color:${on ? '#88ffcc' : 'transparent'};font-size:13px">✓</button>`
+          : `<span style="display:inline-block;width:26px;height:26px;line-height:26px;border-radius:8px;background:rgba(255,255,255,.03);color:${on ? '#88ffcc' : past ? 'rgba(255,255,255,.15)' : 'rgba(255,255,255,.06)'};font-size:13px">${on ? '✓' : past ? '·' : ''}</span>`}</td>`;
+      }).join('');
+      return `<tr><td style="padding:6px 8px;font-size:.78em;color:rgba(255,255,255,.8);line-height:1.4">${it.e} ${escHtml(it.label)}</td>${cells}</tr>`;
+    }).join('');
+    el.innerHTML = `
+      <div class="results-title">THE MEDICINE CABINET</div>
+      <div class="results-sub">Day ${dayNum + 1} of 7 · ${done}/${total} medicines taken · begun ${p.created}</div>
+      <div style="max-width:640px;width:100%;margin:0 auto;padding-bottom:30px">
+        <div style="overflow-x:auto;background:rgba(0,0,0,.3);border:1px solid var(--glass-brd);border-radius:16px;padding:12px">
+          <table style="border-collapse:collapse;width:100%;min-width:430px">
+            <tr><td></td>${Array.from({ length: 7 }, (_, d) => `<td style="text-align:center;font-size:.62em;letter-spacing:1px;color:${d === dayNum ? '#ffd97a' : 'rgba(255,255,255,.35)'};padding:4px">D${d + 1}</td>`).join('')}</tr>
+            ${rows}
+          </table>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+          <button class="btn-sm" onclick="protocolCopy(this)">📋 copy protocol</button>
+          <button class="btn-sm" style="opacity:.7" onclick="if(confirm('Assemble a fresh 7-day protocol? The current week is released.'))protocolNew()">↻ new week</button>
+        </div>
+        <div style="text-align:center;font-size:.68em;color:rgba(255,255,255,.35);font-style:italic;margin-top:12px">Only today's column is open — medicine cannot be backfilled. Each kept item feeds your $PRANA; a full day pays a bonus.</div>
+      </div>`;
+  } catch (e) { el.innerHTML = '<div style="color:rgba(255,255,255,.5);padding:30px;text-align:center">The cabinet opens after your reading.</div>'; }
+}
+
 function buildTabContent() {
   buildClockTab();
+  buildProtocolTab();
   buildDietTab();
   buildColorsTab();
   buildRetreatsTab();
