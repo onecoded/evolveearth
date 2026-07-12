@@ -850,6 +850,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
   <div id="results-nav">
     <div class="rtab-bar">
       <button class="rtab active" data-tab="oracle" onclick="switchResultsTab('oracle')">🔮 Oracle</button>
+      <button class="rtab" data-tab="clock" onclick="switchResultsTab('clock')">🕰️ Spirit Clock</button>
       <button class="rtab" data-tab="diet" onclick="switchResultsTab('diet')">🌿 Diet</button>
       <button class="rtab" data-tab="colors" onclick="switchResultsTab('colors')">💎 Colors</button>
       <button class="rtab" data-tab="retreats" onclick="switchResultsTab('retreats')">🏔️ Retreats</button>
@@ -943,6 +944,8 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
   </div><!-- end tab-oracle -->
 
   <!-- DIET & LIFESTYLE TAB -->
+  <div class="rtab-panel" data-tab="clock" id="tab-clock"></div>
+
   <div class="rtab-panel" data-tab="diet" id="tab-diet"></div>
 
   <!-- COLORS & CRYSTALS TAB -->
@@ -5450,6 +5453,7 @@ function submitCheckin() {
     days: (dc.days || 0) + 1,
   };
   _saveDaily(next);
+  _clockLogPractice(); // the Spirit Clock remembers WHEN you tend the fire
   playCompletionFanfare();
 
   // ── $PRANA rewards: base + streak bonus + oracle loot draw ──
@@ -6094,6 +6098,7 @@ function _witnessCorpus() {
     lunar: (_store('chakra_lunar', {}).count) || 0,
     milestones: Object.keys(_store('chakra_milestones', {})).length,
     asks, dom: _dominantDoshaPct().dom, dx,
+    clock: _spiritClockCorpus(),
   };
 }
 
@@ -6122,6 +6127,18 @@ function _witnessInsights(c) {
     out.push({ key: 'streak-armor', w: 8,
       pattern: `${c.streak} days without missing. That is real, and I honor it. And in all those days of practice, every wounded gate has your fingerprints on it except one: the ${woundName(g)}. Consistency can be devotion. It can also be a well-run fortress. The one door you never approach is telling you where the treasure is buried.`,
       somatic: `Stand at that door tonight — just stand there. What is the first sensation, and where?` });
+  }
+  // The Spirit Clock's testimony — WHEN they practice is also a pattern.
+  if (c.clock && c.clock.practiceLogged >= 5) {
+    if (c.clock.nightPractice >= 5 && c.clock.nightPractice / c.clock.practiceLogged >= 0.4) {
+      out.push({ key: 'night-fire', w: 7,
+        pattern: `The clock keeps its own record: nearly half your practice lands between ten at night and two in the morning — the Night Fire, the watch the body reserves for repair. You give the path the hours left over after everything else has been fed. The practice is real. The timing says it is still last in line.`,
+        somatic: 'Tomorrow, before anything else touches you — before the phone, before the day makes its claims — give the path the FIRST ten minutes. Notice what resists that.' });
+    } else if (c.clock.leanDosha && c.clock.leanDosha === c.dom) {
+      out.push({ key: 'element-mirror', w: 6,
+        pattern: `Here is a quiet pattern: you are ${c.dom}-dominant, and the clock shows your practice gathering in the ${c.dom} watches — your own element's hours, when your imbalance runs strongest. ${c.dom === 'Vata' ? 'Wind tending wind: even your stillness is scheduled restlessly.' : c.dom === 'Pitta' ? 'Fire tending fire: even your practice has become another achievement window.' : 'Earth tending earth: you practice when it is easiest to stay settled, which is exactly when you least need to.'} Try one week of practicing in your power window instead, and see who shows up.`,
+        somatic: 'What time of day frightens you the least? Now — what time of day do you avoid meeting yourself?' });
+    }
   }
   // Collecting maps, not walking.
   if (c.storiesAcquired >= 2 && Object.values(c.heal).filter(v => typeof v === 'number' && v > 0).length === 0) {
@@ -6249,6 +6266,7 @@ function _witnessCorpusCompact() {
       mentorship: c.mentor ? c.mentor.role : null,
       skillOffers: c.skillOffers, skillNeeds: c.skillNeeds, exchanges: c.swaps,
       lineageSouls: c.lineage, milestones: c.milestones,
+      spiritClock: c.clock,
       recentAsks: (c.asks || []).slice(0, 5).map(a => a.text),
     };
   } catch (e) { return null; }
@@ -6893,6 +6911,198 @@ function stopChord() {
 }
 
 // =============================================
+// SPIRIT CLOCK — the six Vedic watches of the day, calibrated to YOUR
+// constitution. Time is not neutral: each 4-hour watch is governed by a
+// dosha, and the member's own element amplifies in its matching hours.
+// The clock reads the assessment (dominant dosha, weakest gate, agni) and
+// tells the member what THIS hour asks of THEM — and the Oracle watches
+// when they actually practice.
+// =============================================
+const SPIRIT_WATCHES = [
+  { from: 2,  to: 6,  dosha: 'Vata',  name: 'The Hour Before Light', governs: 'the subtle mind — dream recall, meditation, the thinnest veil of the day', c: '#9d6bff' },
+  { from: 6,  to: 10, dosha: 'Kapha', name: 'The Slow Ascent',       governs: 'grounding and strength — the body wakes before the mind races', c: '#35d0a0' },
+  { from: 10, to: 14, dosha: 'Pitta', name: 'The High Fire',         governs: 'digestion and decision — the sharpest effort and the largest meal', c: '#ff7a45' },
+  { from: 14, to: 18, dosha: 'Vata',  name: 'The Moving Air',        governs: 'creativity and connection — quick thought, light work, conversation', c: '#9d6bff' },
+  { from: 18, to: 22, dosha: 'Kapha', name: 'The Settling Earth',    governs: 'descent — winding down, warmth, the door to deep sleep', c: '#35d0a0' },
+  { from: 22, to: 2,  dosha: 'Pitta', name: 'The Night Fire',        governs: 'repair — the body digests the day, but only if you are asleep', c: '#ff7a45' },
+];
+// What each watch asks of each constitution. "amplified" = the watch shares
+// the member's element (wind feeding wind); "counsel" = the calibrated move.
+const SPIRIT_CAL = {
+  Vata: {
+    power: [6, 18],   // Kapha morning + Kapha evening: earth steadies air
+    counsel: {
+      Vata:  'Your element rules this watch — the wind is doubled. Do not add speed to speed: slow the breath, warm the body, touch something heavy and real.',
+      Pitta: 'Borrowed fire steadies your air. Good hours for finishing what the mind has scattered — one thing, to the end.',
+      Kapha: 'Earth hours are your medicine. Root here: practice, eat warm, move slowly and deliberately. What you plant in Kapha hours holds all day.',
+    },
+  },
+  Pitta: {
+    power: [6, 14],   // Kapha morning cools; Vata afternoon disperses intensity
+    counsel: {
+      Vata:  'Air hours lighten your fire. Create, connect, play — the intensity you carry at noon becomes brilliance here if you let it move.',
+      Pitta: 'Your element rules this watch — the fire is doubled. Sharp hours, and the hours you burn others (and yourself). Decide, then step away from the forge. Do not pick fights with anyone, including you.',
+      Kapha: 'Earth hours bank your fire. Cool, slow, unclench the jaw. Morning Kapha is your best practice window — strength without the burn.',
+    },
+  },
+  Kapha: {
+    power: [10, 14],  // Pitta midday + Vata afternoon: fire and air move earth
+    counsel: {
+      Vata:  'Air hours are your lift. Say yes to movement and to people — momentum you find now carries the evening.',
+      Pitta: 'Fire hours melt your stillness. This is YOUR window: do the hardest thing of the day now, while the flame is lent to you.',
+      Kapha: 'Your element rules this watch — earth on earth, and the heaviness compounds. Do not nap, do not settle deeper: walk, light a candle, choose the stairs.',
+    },
+  },
+};
+
+function _clockWatchAt(h) {
+  return SPIRIT_WATCHES.find(w => (w.from < w.to) ? (h >= w.from && h < w.to) : (h >= w.from || h < w.to));
+}
+function _clockLogPractice() {
+  try {
+    const L = _store('chakra_clock', []);
+    L.push({ d: _dayStr(0), h: new Date().getHours() });
+    while (L.length > 200) L.shift();
+    _put('chakra_clock', L);
+  } catch (e) {}
+}
+// Where do this member's check-ins actually land? → the watch they favor.
+function _clockPracticeLean() {
+  const L = _store('chakra_clock', []);
+  if (L.length < 5) return null;
+  const counts = SPIRIT_WATCHES.map(w => ({ w, n: L.filter(e => _clockWatchAt(e.h) === w).length }));
+  counts.sort((a, b) => b.n - a.n);
+  const top = counts[0];
+  return { watch: top.w, n: top.n, total: L.length, pct: Math.round(top.n * 100 / L.length) };
+}
+function _spiritClockState() {
+  const now = new Date();
+  const h = now.getHours() + now.getMinutes() / 60;
+  const watch = _clockWatchAt(now.getHours());
+  const dom = Object.keys(mainAnswers || {}).length ? _dominantDoshaPct().dom : null;
+  const brahma = h >= 4.5 && h < 6; // brahma muhurta — the hour of the seers
+  return { now, h, watch, dom, brahma, amplified: !!dom && watch.dosha === dom };
+}
+function _spiritClockCorpus() {
+  try {
+    const s = _spiritClockState();
+    const lean = _clockPracticeLean();
+    const L = _store('chakra_clock', []);
+    const night = L.filter(e => e.h >= 22 || e.h < 2).length;
+    return {
+      windowNow: s.watch.dosha, windowName: s.watch.name, amplified: s.amplified,
+      practiceLogged: L.length,
+      practiceLean: lean ? `${lean.watch.dosha} ${lean.watch.from}:00–${lean.watch.to}:00 (${lean.pct}%)` : null,
+      leanDosha: lean ? lean.watch.dosha : null,
+      nightPractice: night,
+    };
+  } catch (e) { return null; }
+}
+
+// ── the dial ──
+function _clockSvg(state) {
+  const CX = 130, CY = 130, R = 100;
+  const pol = (hour, r) => {
+    const a = (hour / 24) * 2 * Math.PI - Math.PI / 2; // midnight at top
+    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+  };
+  const arc = (from, to, r, wdt, color, op, extra) => {
+    const span = (to - from + 24) % 24;
+    const [x1, y1] = pol(from + 0.06, r), [x2, y2] = pol(to - 0.06, r);
+    return `<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${span > 12 ? 1 : 0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}"
+      fill="none" stroke="${color}" stroke-width="${wdt}" stroke-linecap="round" opacity="${op}" ${extra || ''}/>`;
+  };
+  const dom = state.dom;
+  const power = dom ? SPIRIT_CAL[dom].power : [];
+  let svg = '';
+  // the six watches — the member's own element glows hot, power windows glow gold-edged
+  SPIRIT_WATCHES.forEach(w => {
+    const mine = dom && w.dosha === dom;
+    const pwr = power.includes(w.from);
+    svg += arc(w.from, w.to, R, 16, w.c, mine ? .95 : .32, mine ? `filter="url(#sclock-glow)"` : '');
+    if (pwr) svg += arc(w.from, w.to, R + 13, 2.5, '#ffd97a', .9);
+  });
+  // brahma muhurta — the seers' notch
+  svg += arc(4.5, 6, R - 14, 3, '#ffd97a', .85);
+  // hour labels
+  [[0, '24'], [6, '6'], [12, '12'], [18, '18']].forEach(([hh, t]) => {
+    const [x, y] = pol(hh, R - 30);
+    svg += `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="11">${t}</text>`;
+  });
+  // the needle — where the day actually is
+  const [nx, ny] = pol(state.h, R - 8);
+  svg += `<line x1="${CX}" y1="${CY}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#ffd97a" stroke-width="2" opacity=".9"/>
+    <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="5" fill="#ffd97a" filter="url(#sclock-glow)"/>
+    <circle cx="${CX}" cy="${CY}" r="4" fill="#ffd97a"/>`;
+  // center readout
+  const hm = state.now.toTimeString().slice(0, 5);
+  svg += `<text x="${CX}" y="${CY - 14}" text-anchor="middle" fill="#fff" font-size="17" font-weight="700">${hm}</text>
+    <text x="${CX}" y="${CY + 26}" text-anchor="middle" fill="${state.watch.c}" font-size="11" letter-spacing="2">${state.watch.dosha.toUpperCase()} WATCH</text>`;
+  return `<svg viewBox="0 0 260 260" style="width:min(300px,78vw);height:auto" aria-label="Spirit Clock">
+    <defs><filter id="sclock-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${svg}</svg>`;
+}
+
+function buildClockTab() {
+  const el = document.getElementById('tab-clock');
+  if (!el) return;
+  try {
+    const s = _spiritClockState();
+    const dom = s.dom;
+    const cal = dom ? SPIRIT_CAL[dom] : null;
+    const counsel = cal ? cal.counsel[s.watch.dosha] : 'Walk the Seven Gates first — the clock calibrates itself to your constitution.';
+    const lean = _clockPracticeLean();
+    const agni = _agniClassify();
+    // the weakest gate, so the power window has a target
+    const wounded = CHAKRAS.map((ch, i) => ({ ch, i })).filter(x => mainAnswers[x.i] != null && _lcState(x.i) !== 'open');
+    const target = wounded.length ? wounded[0].ch : null;
+    const powerWatches = cal ? SPIRIT_WATCHES.filter(w => cal.power.includes(w.from)) : [];
+    const fmtW = w => `${w.from}:00–${w.to}:00`;
+
+    el.innerHTML = `
+      <div class="results-title">THE SPIRIT CLOCK</div>
+      <div class="results-sub">Time is not neutral. Six watches govern the day — and your element rules some of them.</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:18px;max-width:560px;width:100%;margin:0 auto;padding-bottom:30px">
+        <div style="position:relative">${_clockSvg(s)}</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.78em;color:rgba(255,255,255,.55)">
+          <span><span style="color:#9d6bff">●</span> Vata · air</span>
+          <span><span style="color:#ff7a45">●</span> Pitta · fire</span>
+          <span><span style="color:#35d0a0">●</span> Kapha · earth</span>
+          <span><span style="color:#ffd97a">—</span> your power window</span>
+        </div>
+
+        <div style="width:100%;background:rgba(0,0,0,.35);border:1px solid ${s.watch.c}55;border-radius:16px;padding:18px 20px;${s.amplified ? 'box-shadow:0 0 24px ' + s.watch.c + '33;' : ''}">
+          <div style="font-size:.72em;letter-spacing:3px;color:${s.watch.c};margin-bottom:6px">NOW · ${s.watch.name.toUpperCase()}${s.brahma ? ' · ✧ BRAHMA MUHURTA' : ''}</div>
+          <div style="color:rgba(255,255,255,.85);font-size:.95em;line-height:1.55">This watch governs ${s.watch.governs}.</div>
+          <div style="margin-top:10px;color:#ffd97a;font-size:.92em;line-height:1.6">${s.brahma ? 'The hour of the seers — the veil is thinnest right now. If you are reading this, you are already awake: sit before the light comes.' : s.watch.from === 22 ? 'The lamp is still lit. This watch belongs to repair, and repair only happens in sleep — the most advanced practice available to you right now is to put this down and close your eyes.' : counsel}</div>
+          ${s.amplified ? `<div style="margin-top:8px;font-size:.78em;color:${s.watch.c}">⚠ ${dom} hours amplify your ${dom} — this is when your imbalance speaks loudest.</div>` : ''}
+        </div>
+
+        ${cal ? `
+        <div style="width:100%;background:rgba(0,0,0,.3);border:1px solid var(--glass-brd);border-radius:16px;padding:18px 20px">
+          <div style="font-size:.72em;letter-spacing:3px;color:#ffd97a;margin-bottom:8px">YOUR CALIBRATION · ${dom.toUpperCase()} CONSTITUTION</div>
+          <div style="color:rgba(255,255,255,.8);font-size:.9em;line-height:1.7">
+            <div>✦ <b>Power windows:</b> ${powerWatches.map(w => `${w.dosha} ${fmtW(w)}`).join(' and ')} — ${target ? `bring your <b style="color:${target.color || '#ffd97a'}">${target.name}</b> work here; the day itself will help you.` : 'your deepest practice belongs here.'}</div>
+            <div style="margin-top:6px">✦ <b>Friction hours:</b> the ${dom} watches (${SPIRIT_WATCHES.filter(w => w.dosha === dom).map(fmtW).join(' and ')}) — your element doubled. Counter, don't feed.</div>
+            <div style="margin-top:6px">✦ <b>Brahma muhurta</b> (4:30–6:00): the universal window — every constitution meets itself most easily here.</div>
+            ${agni ? `<div style="margin-top:6px">✦ <b>Your fire says:</b> ${agni.advice}</div>` : ''}
+          </div>
+        </div>` : ''}
+
+        ${lean ? `
+        <div style="width:100%;background:rgba(0,0,0,.3);border:1px solid var(--glass-brd);border-radius:16px;padding:16px 20px">
+          <div style="font-size:.72em;letter-spacing:3px;color:#88ffcc;margin-bottom:6px">THE CLOCK HAS BEEN WATCHING</div>
+          <div style="color:rgba(255,255,255,.8);font-size:.9em;line-height:1.6">${lean.pct}% of your check-ins land in the <b style="color:${lean.watch.c}">${lean.watch.dosha} watch (${fmtW(lean.watch)})</b>.
+          ${dom && lean.watch.dosha === dom ? `You practice inside your own element's hours — ${dom} tending ${dom}. Ask the Oracle what that means.` : dom && cal.power.includes(lean.watch.from) ? 'That is your power window — your rhythm already knows.' : 'Try moving one practice into your power window this week and watch what changes.'}</div>
+        </div>` : `
+        <div style="font-size:.8em;color:rgba(255,255,255,.45);text-align:center">Complete daily check-ins and the clock will learn <i>when</i> you practice — and show you what your timing reveals.</div>`}
+      </div>`;
+  } catch (e) { el.innerHTML = '<div style="color:rgba(255,255,255,.5);padding:30px;text-align:center">The clock is still turning — return after your reading.</div>'; }
+}
+// keep the needle alive while the tab is open
+setInterval(() => { try { if (_activeTab === 'clock') buildClockTab(); } catch (e) {} }, 30000);
+
+// =============================================
 // RESULTS TABS
 // =============================================
 let _activeTab = 'oracle';
@@ -6911,6 +7121,7 @@ function showResultsNav() {
 }
 
 function buildTabContent() {
+  buildClockTab();
   buildDietTab();
   buildColorsTab();
   buildRetreatsTab();
