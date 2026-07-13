@@ -20,7 +20,7 @@ describe("Prana Economy (gamified evolution)", function () {
     // Authorize the Prism contract to mint rewards, and point it at the token.
     await prana.setEmitter(await soul.getAddress(), true);
     await soul.setPrana(await prana.getAddress());
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
   });
 
   it("only emitters can mint $PRANA", async function () {

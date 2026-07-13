@@ -37,6 +37,7 @@ async function main() {
   const registry = await deploy("InitiationRegistry", deployed.PranaToken, deployed.SoulSignature);
   const dao = await deploy("MirrorDAO", deployed.SoulSignature);
   const market = await deploy("MedicineStory", deployed.PranaToken, deployed.SoulSignature);
+  await deploy("WitnessEscrow", deployed.PranaToken); // sessions escrow — attention with teeth
 
   // 3) Wiring — the economy only works connected.
   console.log("\nwiring…");
@@ -62,7 +63,7 @@ async function main() {
 
   // 5) Smoke test — prove the whole economy breathes.
   console.log("\nsmoke test…");
-  await (await soul.mint(deployer.address, 58, 28, 14, "Ajna", "Vayu", "2102210")).wait();
+  await (await soul.mint(deployer.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--")).wait();
   await (await soul.addSadhana(1, 150)).wait(); // Seed→Seeker: should drop 50 PRANA
   const pranaBal = await prana.balanceOf(deployer.address);
   const uri = await soul.tokenURI(1);

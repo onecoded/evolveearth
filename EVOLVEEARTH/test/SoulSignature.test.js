@@ -12,7 +12,7 @@ describe("SoulSignature", function () {
   });
 
   it("mints with valid dosha and stores traits", async function () {
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
     expect(await soul.ownerOf(1)).to.equal(alice.address);
 
     const data = await soul.soulData(1);
@@ -23,12 +23,12 @@ describe("SoulSignature", function () {
 
   it("rejects dosha that does not sum to 100", async function () {
     await expect(
-      soul.mint(alice.address, 50, 28, 14, "Ajna", "Vayu", "2102210")
+      soul.mint(alice.address, 50, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--")
     ).to.be.revertedWith("Dosha must sum to 100");
   });
 
   it("returns a fully on-chain base64 tokenURI with no external links", async function () {
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
     const uri = await soul.tokenURI(1);
 
     expect(uri.startsWith("data:application/json;base64,")).to.equal(true);
@@ -49,21 +49,21 @@ describe("SoulSignature", function () {
   });
 
   it("promotes to Elder at 2500 sadhana points", async function () {
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
     await soul.addSadhana(1, 2500);
     const data = await soul.soulData(1);
     expect(data.tier).to.equal("Elder");
   });
 
   it("inscribes memory seals and reflects them in seal count", async function () {
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
     await soul.inscribeMemorySeal(1, "Spring Equinox Retreat 2026", 1750000000);
     await soul.inscribeMemorySeal(1, "Summer Solstice Retreat 2026", 1755000000);
     expect(await soul.sealCount(1)).to.equal(2);
   });
 
   it("blocks non-oracle accounts from evolving a token", async function () {
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
     await expect(
       soul.connect(alice).addSadhana(1, 100)
     ).to.be.revertedWith("Not an oracle");
@@ -75,7 +75,7 @@ describe("SoulSignature", function () {
       const json = JSON.parse(Buffer.from(uri.split(",")[1], "base64").toString("utf8"));
       return Buffer.from(json.image.split(",")[1], "base64").toString("utf8");
     };
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
     // Fresh Prism: no gold rings, no seals → no gold at all.
     expect(await svgOf(1)).to.not.include("#c9a84c");
 
@@ -94,13 +94,13 @@ describe("SoulSignature", function () {
     const attr = (m, t) => m.attributes.find((a) => a.trait_type === t).value;
 
     // All centres open → In Balance, full flow.
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2222222");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2222222", "-------");
     const m1 = await meta(1);
     expect(attr(m1, "Balance")).to.equal("In Balance");
     expect(attr(m1, "Flow")).to.equal(100);
 
     // Mostly blocked → Out of Balance, with broken (dashed) arcs in the image.
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "0001000");
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "0001000", "KVPKVPK");
     const m2 = await meta(2);
     expect(attr(m2, "Balance")).to.equal("Out of Balance");
     const svg2 = Buffer.from(m2.image.split(",")[1], "base64").toString("utf8");

@@ -437,10 +437,10 @@ body{cursor:crosshair}
 
 /* ===================== RESULTS TABS ===================== */
 #results-nav{width:100%;max-width:700px;margin-bottom:24px;display:none}
-.rtab-bar{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:14px;padding:5px;border:1px solid rgba(255,255,255,.07);flex-wrap:wrap}
-.rtab{flex:1;min-width:max-content;background:transparent;border:none;color:#7766aa;padding:8px 11px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:.7em;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;white-space:nowrap}
-.rtab.active{background:rgba(140,80,255,.2);color:#e0d0ff;box-shadow:inset 0 0 0 1px rgba(140,80,255,.3)}
-.rtab:hover:not(.active){background:rgba(255,255,255,.06);color:#c0b0d8}
+.rtab-bar{display:flex;gap:5px;background:linear-gradient(180deg,rgba(30,18,52,.75),rgba(14,8,26,.85));border-radius:18px;padding:6px;border:1px solid var(--glass-brd);flex-wrap:wrap;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);box-shadow:0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05)}
+.rtab{flex:1;min-width:max-content;background:transparent;border:1px solid transparent;color:#8a7ab5;padding:9px 13px;border-radius:13px;cursor:pointer;font-family:inherit;font-size:.7em;letter-spacing:1.5px;text-transform:uppercase;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap;position:relative}
+.rtab.active{background:linear-gradient(135deg,rgba(140,80,255,.32),rgba(225,40,140,.18));color:#f2e9ff;border-color:rgba(170,110,255,.45);box-shadow:0 0 18px rgba(140,80,255,.35), inset 0 1px 0 rgba(255,255,255,.12);text-shadow:0 0 12px rgba(200,160,255,.6)}
+.rtab:hover:not(.active){background:rgba(255,255,255,.06);color:#cfc0e8;border-color:rgba(255,255,255,.1);transform:translateY(-1px)}
 .rtab-panel{display:none;width:100%;flex-direction:column;align-items:center}
 .rtab-panel.active{display:flex;animation:fadeIn .3s ease}
 .tab-content-box{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:22px;width:100%;max-width:700px;margin-bottom:16px}
@@ -867,6 +867,9 @@ body::after{content:'';position:fixed;inset:0;z-index:9997;pointer-events:none;
   <div class="rtab-panel active" data-tab="oracle" id="tab-oracle" style="flex-direction:column;align-items:center">
   <div class="results-title">YOUR CHAKRA READING</div>
   <div class="results-sub">Seven centers. Seven truths. One magnificent, messy, whole you.</div>
+
+  <!-- ALIGNMENT MANDALA — which dosha wounds which gate, at a glance -->
+  <div id="alignment-mandala" style="width:100%;max-width:560px;margin:0 auto 18px"></div>
 
   <!-- SOUL CAST — the reading as a shareable card -->
   <div style="text-align:center;margin-bottom:14px">
@@ -6109,8 +6112,17 @@ function _ttsNext() {
 
 function _ttsSpeakNow(text, done) {
   if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio = null; }
+  // The Nervous System's true voice first — key lives in the worker, cached
+  // in KV so each ceremony line costs pennies once, ever. Falls through to
+  // device key, then browser TTS: the Oracle never goes silent.
+  const apiBase = Store.get('chakra_oracle_api', '');
+  if (apiBase) { _ttsWorker(text, apiBase.replace(/\/+$/, ''), done); return; }
   const elKey = localStorage.getItem('el_key');
   if (elKey) { _ttsElevenLabs(text, elKey, done); return; }
+  _ttsBrowser(text, done);
+}
+
+function _ttsBrowser(text, done) {
   if (!('speechSynthesis' in window)) { if (done) setTimeout(done, 50); return; }
   const cleaned = _stripForSpeech(text);
   if (!cleaned) { if (done) setTimeout(done, 50); return; }
@@ -6202,6 +6214,26 @@ function ttsSpeak(text, onDone) {
 
 // Optional premium: ElevenLabs API (free tier = 10k chars/mo)
 // Default voice: "Lily" — soft, warm, meditative quality
+async function _ttsWorker(text, base, onDone) {
+  try {
+    const res = await fetch(base + '/tts', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: _stripForSpeech(text) }),
+    });
+    if (!res.ok || !(res.headers.get('content-type') || '').includes('audio')) throw new Error('worker tts ' + res.status);
+    _ttsAudio = new Audio(URL.createObjectURL(await res.blob()));
+    _ttsAudio.volume = 0.88;
+    _ttsAudio.onended = () => { if (onDone) onDone(); };
+    _ttsAudio.onerror = () => { if (onDone) onDone(); };
+    await _ttsAudio.play();
+  } catch (e) {
+    // worker not configured for voice — fall to device key, then browser
+    const elKey = localStorage.getItem('el_key');
+    if (elKey) { _ttsElevenLabs(text, elKey, onDone); return; }
+    _ttsBrowser(text, onDone);
+  }
+}
+
 async function _ttsElevenLabs(text, apiKey, onDone) {
   const VOICE_ID = localStorage.getItem('el_voice') || 'pFZP5JQG7iQjIQuC4Bku'; // Lily
   const cleaned  = _stripForSpeech(text);
@@ -7702,7 +7734,81 @@ function buildProtocolTab() {
   } catch (e) { el.innerHTML = '<div style="color:rgba(255,255,255,.5);padding:30px;text-align:center">The cabinet opens after your reading.</div>'; }
 }
 
+// =============================================
+// THE ALIGNMENT MANDALA — the reading as sacred geometry. Seven gates on a
+// wheel; every wounded gate carries the glyph of the dosha wounding it —
+// violet wind, amber fire, green earth — so one glance answers the only
+// question that matters: WHERE, and WHAT KIND of medicine.
+// =============================================
+const ALIGN_DOSHA = {
+  V: { name: 'Vata', c: '#9d6bff', verb: 'wind scatters this gate', med: 'warmth, rhythm, weight — warm oil, fixed times, ground' },
+  P: { name: 'Pitta', c: '#ff7a45', verb: 'fire burns this gate', med: 'cooling, softness, moonlight — forgive, unclench, slow the forge' },
+  K: { name: 'Kapha', c: '#35d0a0', verb: 'earth buries this gate', med: 'movement, heat, expression — sunrise practice, lightness, begin' },
+};
+function buildAlignmentMandala() {
+  const el = document.getElementById('alignment-mandala');
+  if (!el) return;
+  try {
+    const answered = Object.keys(mainAnswers || {}).length;
+    if (!answered) { el.innerHTML = ''; return; }
+    const CX = 170, CY = 170, R = 112;
+    const gates = CHAKRAS.map((ch, i) => {
+      const a = (-90 + (6 - i) * (360 / 7)) * Math.PI / 180; // crown crowns the wheel
+      const st = _lcState(i);
+      const open = st === 'open' || st === 'neutral';
+      const arc = mainAnswers[i] != null ? ARC[mainAnswers[i]] : null;
+      const d = (!open && arc && arc.dosha) ? arc.dosha[0] : null;
+      return { ch, i, x: CX + R * Math.cos(a), y: CY + R * Math.sin(a), lx: CX + (R + 40) * Math.cos(a), ly: CY + (R + 40) * Math.sin(a), st, open, d };
+    });
+    const dd = _dominantDoshaPct();
+    const flow = Math.round(gates.reduce((s, g) => s + (g.open ? 2 : g.st === 'partial' ? 1 : 0), 0) * 100 / 14);
+    let svg = '';
+    gates.forEach(g => {
+      svg += `<line x1="${CX}" y1="${CY}" x2="${g.x.toFixed(1)}" y2="${g.y.toFixed(1)}" stroke="${g.ch.color}" stroke-width="1" opacity="${g.open ? .45 : g.st === 'partial' ? .22 : .1}"/>`;
+    });
+    gates.forEach(g => {
+      const D = g.d ? ALIGN_DOSHA[g.d] : null;
+      if (!g.open) svg += `<circle cx="${g.x.toFixed(1)}" cy="${g.y.toFixed(1)}" r="31" fill="none" stroke="${D ? D.c : '#666'}" stroke-width="1.2" stroke-dasharray="4 5"><animate attributeName="opacity" values="0.85;0.25;0.85" dur="2.6s" repeatCount="indefinite"/></circle>`;
+      svg += `<circle cx="${g.x.toFixed(1)}" cy="${g.y.toFixed(1)}" r="24" fill="${g.ch.color}" opacity="${g.open ? .88 : g.st === 'partial' ? .4 : .14}" ${g.open ? `filter="url(#am-glow)"` : ''}/>
+        <circle cx="${g.x.toFixed(1)}" cy="${g.y.toFixed(1)}" r="24" fill="none" stroke="${g.ch.color}" stroke-width="1.6" opacity="${g.open ? .95 : .5}"/>`;
+      if (D) svg += `<circle cx="${g.x.toFixed(1)}" cy="${g.y.toFixed(1)}" r="11" fill="#0d0618" stroke="${D.c}" stroke-width="1.4"/>
+        <text x="${g.x.toFixed(1)}" y="${g.y.toFixed(1)}" dy="4" text-anchor="middle" fill="${D.c}" font-size="11" font-weight="bold" font-family="Georgia">${g.d}</text>`;
+      else if (g.open) svg += `<text x="${g.x.toFixed(1)}" y="${g.y.toFixed(1)}" dy="5" text-anchor="middle" font-size="14">${g.ch.emoji}</text>`;
+      svg += `<text x="${g.lx.toFixed(1)}" y="${g.ly.toFixed(1)}" dy="3" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="10" font-family="Georgia" font-style="italic">${g.ch.sanskrit}</text>`;
+    });
+    const domC = ALIGN_DOSHA[dd.dom ? dd.dom[0] : 'V'].c;
+    svg += `<circle cx="${CX}" cy="${CY}" r="42" fill="#0d0618" stroke="${domC}" stroke-width="1.4" opacity=".95"/>
+      <text x="${CX}" y="${CY - 4}" text-anchor="middle" fill="#fff" font-size="22" font-weight="bold" font-family="Georgia">${flow}%</text>
+      <text x="${CX}" y="${CY + 14}" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8" letter-spacing="2">FLOW · ${(dd.dom || '').toUpperCase()}</text>`;
+    const counsel = gates.filter(g => !g.open && g.d).map(g => {
+      const D = ALIGN_DOSHA[g.d];
+      return `<div style="display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.3);border:1px solid ${D.c}44;border-left:3px solid ${D.c};border-radius:12px;padding:10px 13px;margin-top:8px">
+        <span style="font-size:1.3em">${g.ch.emoji}</span>
+        <div style="flex:1;text-align:left">
+          <div style="font-size:.8em;color:#e8e0f8"><b>${g.ch.name}</b> — <span style="color:${D.c}">${D.name} ${D.verb}</span></div>
+          <div style="font-size:.72em;color:rgba(255,255,255,.55);margin-top:2px">Medicine: ${D.med}</div>
+        </div>
+        <button class="btn-sm" style="font-size:.6em;padding:4px 9px;border-color:${D.c}66;color:${D.c}" onclick="openOraclePanel({chakra:'${g.ch.name}',issue:'The mandala shows ${D.name} ${D.verb.replace(/'/g, '')} — let us work it.'})">🔮 work it</button>
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div style="background:rgba(0,0,0,.28);border:1px solid var(--glass-brd);border-radius:20px;padding:16px;text-align:center">
+      <div style="font-size:.7em;letter-spacing:3px;color:#c9a84c">✦ YOUR ALIGNMENT MANDALA</div>
+      <svg viewBox="0 0 340 340" style="width:min(360px,86vw);height:auto;margin:4px auto" aria-label="Alignment mandala">
+        <defs><filter id="am-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        ${svg}</svg>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:.7em;color:rgba(255,255,255,.5)">
+        <span><span style="color:#9d6bff">V</span> wind scatters</span>
+        <span><span style="color:#ff7a45">P</span> fire burns</span>
+        <span><span style="color:#35d0a0">K</span> earth buries</span>
+        <span>◌ pulsing ring = needs alignment</span>
+      </div>
+      ${counsel || '<div style="font-size:.78em;color:#88ffcc;margin-top:8px">All seven gates stand open — the wheel turns freely.</div>'}
+    </div>`;
+  } catch (e) { el.innerHTML = ''; }
+}
+
 function buildTabContent() {
+  buildAlignmentMandala();
   buildClockTab();
   buildProtocolTab();
   buildDietTab();
@@ -9528,7 +9634,7 @@ const SOUL_NETWORK = {
   blockExplorerUrls: ["https://evm.taostats.io"], // verify current EVM explorer
 };
 const SOUL_ABI = [
-  "function mint(address to,uint8 vata,uint8 pitta,uint8 kapha,string dominantChakra,string tribe,string chakraStates) returns (uint256)",
+  "function mint(address to,uint8 vata,uint8 pitta,uint8 kapha,string dominantChakra,string tribe,string chakraStates,string doshaMap) returns (uint256)",
   "function nextTokenId() view returns (uint256)",
 ];
 
@@ -9582,10 +9688,14 @@ function assessmentToSoulInline() {
     : Math.round(answered.reduce((s, k) => s + flows[Number(k)], 0) / 10);
   const dailyS = (typeof _getDaily === "function") ? (_getDaily().sadhana || 0) : 0;
   // chakraStates: 7 chars root..crown for the on-chain balance halo.
-  let chakraStates = "";
+  let chakraStates = "", doshaMap = "";
   for (let i = 0; i < 7; i++) {
     const s = lsAnswers ? lsAnswers[i] : undefined;
-    chakraStates += (s === "open" || s === "neutral") ? "2" : s === "partial" ? "1" : s === "blocked" ? "0" : "1";
+    const open = (s === "open" || s === "neutral");
+    chakraStates += open ? "2" : s === "partial" ? "1" : s === "blocked" ? "0" : "1";
+    // which dosha wounds this gate — read from the arc they chose there
+    const arc = mainAnswers[i] != null ? ARC[mainAnswers[i]] : null;
+    doshaMap += (open || !arc || !arc.dosha) ? "-" : arc.dosha[0]; // V / P / K
   }
   return {
     vata: pct.Vata, pitta: pct.Pitta, kapha: pct.Kapha,
@@ -9594,6 +9704,7 @@ function assessmentToSoulInline() {
     tribe: _soulTribe(pct),
     sadhanaPoints: journeyS + dailyS,
     chakraStates,
+    doshaMap,
     balancePct: Math.round((chakraStates.split("").reduce((a, c) => a + Number(c), 0) * 100) / 14),
   };
 }
@@ -9631,7 +9742,7 @@ async function mintSoulSignature() {
     const contract = new ethers.Contract(SOUL_CONTRACT_ADDRESS, SOUL_ABI, signer);
 
     statusEl.innerHTML += "<br>Minting — confirm in your wallet…";
-    const tx = await contract.mint(me, soul.vata, soul.pitta, soul.kapha, soul.dominantChakra, soul.tribe, soul.chakraStates);
+    const tx = await contract.mint(me, soul.vata, soul.pitta, soul.kapha, soul.dominantChakra, soul.tribe, soul.chakraStates, soul.doshaMap || "-------");
     statusEl.innerHTML += `<br>Submitted: ${tx.hash.slice(0, 18)}… waiting for confirmation…`;
     await tx.wait();
     const tokenId = (await contract.nextTokenId()) - 1n;

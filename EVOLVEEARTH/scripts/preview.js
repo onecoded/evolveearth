@@ -25,7 +25,7 @@ async function getContract() {
   const Soul = await hre.ethers.getContractFactory("SoulSignature");
   const soul = await Soul.deploy();
   await soul.waitForDeployment();
-  await (await soul.mint(signer.address, 58, 28, 14, "Ajna", "Vayu", "2102210")).wait();
+  await (await soul.mint(signer.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--")).wait();
   await (await soul.addSadhana(1, 250)).wait();
   await (await soul.inscribeMemorySeal(1, "Spring Equinox Retreat 2026", 1750000000)).wait();
   return { soul, tokenId: 1n };

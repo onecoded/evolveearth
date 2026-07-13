@@ -26,9 +26,9 @@ describe("Civilization layer (#5-#10)", function () {
     await soul.setOracle(await registry.getAddress(), true); // registry seals rites onto Prisms
 
     // Three souls: alice healed-open, bob mixed, carol mostly blocked.
-    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2222222"); // #1
-    await soul.mint(bob.address, 34, 33, 33, "Anahata", "Akasha", "2102210"); // #2
-    await soul.mint(carol.address, 20, 40, 40, "Muladhara", "Jala", "0001000"); // #3
+    await soul.mint(alice.address, 58, 28, 14, "Ajna", "Vayu", "2222222", "-------"); // #1
+    await soul.mint(bob.address, 34, 33, 33, "Anahata", "Akasha", "2102210", "-V--P--"); // #2
+    await soul.mint(carol.address, 20, 40, 40, "Muladhara", "Jala", "0001000", "KKK-KKK"); // #3
 
     // Fund wallets with PRANA for staking/purchasing.
     for (const w of [alice, bob, carol]) {

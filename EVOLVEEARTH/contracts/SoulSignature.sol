@@ -41,6 +41,7 @@ contract SoulSignature is ERC721, Ownable {
         string  tier;           // Seeker / Practitioner / Elder
         uint256 sadhanaPoints;  // accumulated daily-practice points
         string  chakraStates;   // 7 chars root..crown: '2' open / '1' partial / '0' blocked
+        string  doshaMap;       // 7 chars root..crown: 'V'/'P'/'K' = the dosha wounding that gate ('-' unknown)
     }
 
     uint256 public nextTokenId = 1;
@@ -209,7 +210,8 @@ contract SoulSignature is ERC721, Ownable {
         uint8 kapha,
         string calldata dominantChakra,
         string calldata tribe,
-        string calldata chakraStates
+        string calldata chakraStates,
+        string calldata doshaMap
     ) external returns (uint256 tokenId) {
         require(uint16(vata) + pitta + kapha == 100, "Dosha must sum to 100");
 
@@ -222,7 +224,8 @@ contract SoulSignature is ERC721, Ownable {
             tribe: tribe,
             tier: "Seeker",
             sadhanaPoints: 0,
-            chakraStates: chakraStates
+            chakraStates: chakraStates,
+            doshaMap: doshaMap
         });
 
         _safeMint(to, tokenId);
@@ -254,6 +257,13 @@ contract SoulSignature is ERC721, Ownable {
         require(_ownerOf(tokenId) != address(0), "Nonexistent token");
         soulData[tokenId].chakraStates = states;
         lastActivity[tokenId] = block.timestamp;
+        emit MetadataUpdate(tokenId);
+    }
+
+    /// Re-tests also re-read WHICH dosha wounds each gate — the alignment map.
+    function setDoshaMap(uint256 tokenId, string calldata map_) external onlyOracle {
+        require(_ownerOf(tokenId) != address(0), "Nonexistent token");
+        soulData[tokenId].doshaMap = map_;
         emit MetadataUpdate(tokenId);
     }
 
@@ -343,6 +353,7 @@ contract SoulSignature is ERC721, Ownable {
                 '{"trait_type":"Sadhana Points","value":', soul.sadhanaPoints.toString(), '},',
                 '{"trait_type":"Memory Seals","value":', sealCount(tokenId).toString(), '},',
                 '{"trait_type":"Balance","value":"', _balanceLabel(soul.chakraStates), '"},',
+                '{"trait_type":"Gate Doshas","value":"', bytes(soul.doshaMap).length == 0 ? "unread" : soul.doshaMap, '"},',
                 '{"trait_type":"Flow","value":', _balancePct(soul.chakraStates).toString(), '},',
                 '{"trait_type":"Level","value":"', levelName(_stage(soul.sadhanaPoints)), '"},',
                 '{"trait_type":"Vitality","value":"', _vitality(tokenId), '"},',
@@ -447,6 +458,29 @@ contract SoulSignature is ERC721, Ownable {
         return "Out of Balance";
     }
 
+    // ── Alignment marks ── at every gate that is NOT open, a small glyph-dot
+    // in the wounding dosha's colour sits on the halo vertex: violet = Vata
+    // wind scatters this gate, amber = Pitta fire burns it, green = Kapha
+    // earth buries it. The Prism shows exactly WHERE and WHAT to align.
+    function _doshaMarks(string memory states, string memory map_) internal pure returns (string memory marks) {
+        string[7] memory vx = ["120","198.2","217.5","163.4","76.6","22.5","41.8"];
+        string[7] memory vy = ["20","57.6","142.3","210.1","210.1","142.3","57.6"];
+        bytes memory s = bytes(states);
+        bytes memory m = bytes(map_);
+        for (uint256 i = 0; i < 7; i++) {
+            bytes1 st = i < s.length ? s[i] : bytes1("1");
+            if (st == "2") continue; // open gates need no medicine
+            bytes1 d = i < m.length ? m[i] : bytes1("-");
+            string memory c = d == "V" ? "#7c5cbf" : d == "P" ? "#ff6b35" : d == "K" ? "#7cb87a" : "#666677";
+            string memory letter = d == "V" ? "V" : d == "P" ? "P" : d == "K" ? "K" : "?";
+            marks = string(abi.encodePacked(
+                marks,
+                '<circle cx="', vx[i], '" cy="', vy[i], '" r="7" fill="#0a0a0f" stroke="', c, '" stroke-width="1.6" opacity="0.95"/>',
+                '<text x="', vx[i], '" y="', vy[i], '" dy="2.6" text-anchor="middle" fill="', c, '" font-size="7" font-family="monospace" font-weight="bold">', letter, '</text>'
+            ));
+        }
+    }
+
     // The outer ring becomes a 7-chakra balance halo: each arc bright + whole when that
     // centre is open, dim + broken when blocked. Reads as in/out of balance at a glance.
     function _balanceRing(string memory states) internal pure returns (string memory ring) {
@@ -492,6 +526,7 @@ contract SoulSignature is ERC721, Ownable {
             '<circle cx="120" cy="120" r="110" fill="url(#g)"/>',
             '<circle cx="120" cy="120" r="100" fill="none" stroke="#16161f" stroke-width="6"/>',
             _balanceRing(soul.chakraStates),
+            _doshaMarks(soul.chakraStates, soul.doshaMap),
             '<circle cx="120" cy="120" r="80" fill="none" stroke="#3a2a5a" stroke-width="0.5"/>',
             _evolutionLayers(soul.sadhanaPoints, soul.tier),
             '<g transform="translate(120,120)" opacity="', _vitalityOpacity(tokenId), '">', petals, '</g>',

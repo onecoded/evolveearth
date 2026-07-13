@@ -14,7 +14,7 @@ async function main() {
 
   // Example assessment result — Vata-dominant, Ajna chakra, Vayu (air) tribe.
   console.log("Minting Soul Signature...");
-  const tx = await soul.mint(signer.address, 58, 28, 14, "Ajna", "Vayu", "2102210");
+  const tx = await soul.mint(signer.address, 58, 28, 14, "Ajna", "Vayu", "2102210", "-V--P--");
   const receipt = await tx.wait();
   console.log("  mint tx:", receipt.hash);
 
